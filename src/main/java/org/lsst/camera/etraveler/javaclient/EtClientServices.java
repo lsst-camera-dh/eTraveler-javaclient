@@ -21,8 +21,22 @@ public class EtClientServices  {
   public Map<String, Object> getRunInfo(int activityId) throws UnsupportedEncodingException, IOException, EtClientException {
     HashMap<String, Object> args = new HashMap<String, Object> ();
     args.put("activityId", activityId);
-    args.put("read_only", m_operator);
     Map<String, Object> results = m_client.execute("getRunInfo", args);
+    return consumeAck(results);
+  }
+
+  public Map<String, Object> getManufacturerId(String experimentSN,
+                                               String hardwareTypeName)
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    HashMap<String, Object> args = new HashMap<String, Object> ();
+    args.put("experimentSN", experimentSN);
+    args.put("hardwareTypeName", hardwareTypeName);
+    Map<String, Object> results = m_client.execute("getManufacturerId", args);
+    return consumeAck(results);
+  }
+
+  private Map<String, Object> consumeAck(Map<String, Object> results)
+    throws EtClientException {
     if (results.get("acknowledge") == null) {
       results.remove("acknowledge");
       return results;
@@ -31,6 +45,7 @@ public class EtClientServices  {
                                   results.get("acknowledge").toString());
     }
   }
+
 
   public void close() throws IOException {
     m_client.close();

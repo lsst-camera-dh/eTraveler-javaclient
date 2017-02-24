@@ -53,4 +53,34 @@ public class TestEtClientServices {
       myService.close();
     }
   }
+
+  @Test
+  public void testGetManufacturerId() throws UnsupportedEncodingException,
+                                      EtClientException, IOException {
+    System.out.println("Running testGetManufacturerId test");
+
+    EtClientServices myService = new EtClientServices("Dev", null, true);
+
+    try {
+      Map<String, Object> results =
+        myService.getManufacturerId("E2V-CCD250-179", "e2v-CCD");
+
+      assertNotNull(results);
+      for (String k: results.keySet() ) {
+        Object v = results.get(k);
+        if (v == null) {
+          System.out.println("Key '" + k + "' has value null");
+        } else {
+          System.out.println("Key '" + k + "' has value: " + v.toString());
+        }
+      }
+    } catch (Exception ex) {
+      System.out.println("post failed with message " + ex.getMessage());
+      throw new EtClientException(ex.getMessage());
+    }
+    finally {
+      myService.close();
+    }
+  }
+
 }
