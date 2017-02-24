@@ -22,7 +22,14 @@ public class EtClientServices  {
     HashMap<String, Object> args = new HashMap<String, Object> ();
     args.put("activityId", activityId);
     args.put("read_only", m_operator);
-    return m_client.execute("getRunInfo", args);
+    Map<String, Object> results = m_client.execute("getRunInfo", args);
+    if (results.get("acknowledge") == null) {
+      results.remove("acknowledge");
+      return results;
+    } else {
+      throw new EtClientException("Operation failed with error: " +
+                                  results.get("acknowledge").toString());
+    }
   }
 
   public void close() throws IOException {
