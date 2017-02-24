@@ -35,6 +35,28 @@ public class EtClientServices  {
     return consumeAck(results);
   }
 
+  public Map<String, Object> getHardwareHierarchy(String experimentSN,
+                                                  String hardwareTypeName)
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    HashMap<String, Object> args = new HashMap<String, Object> ();
+    args.put("experimentSN", experimentSN);
+    args.put("hardwareTypeName", hardwareTypeName);
+    Map<String, Object> results =
+      m_client.execute("getHardwareHierarchy", args);
+    return consumeAck(results);
+  }
+
+  public Map<String, Object>
+    getContainingHardwareHierarchy(String experimentSN, String hardwareTypeName)
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    HashMap<String, Object> args = new HashMap<String, Object> ();
+    args.put("experimentSN", experimentSN);
+    args.put("hardwareTypeName", hardwareTypeName);
+    Map<String, Object> results =
+      m_client.execute("getContainingHardware", args);
+    return consumeAck(results);
+  }
+
   private Map<String, Object> consumeAck(Map<String, Object> results)
     throws EtClientException {
     if (results.get("acknowledge") == null) {
@@ -45,7 +67,6 @@ public class EtClientServices  {
                                   results.get("acknowledge").toString());
     }
   }
-
 
   public void close() throws IOException {
     m_client.close();

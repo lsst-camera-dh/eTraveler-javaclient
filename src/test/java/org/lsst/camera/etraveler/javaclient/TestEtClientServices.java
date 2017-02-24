@@ -9,6 +9,7 @@ import org.junit.Ignore;
 import static org.junit.Assert.*;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.io.IOException;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -29,7 +30,7 @@ public class TestEtClientServices {
   @Test
   public void testGetRunInfo() throws UnsupportedEncodingException,
                                       EtClientException, IOException {
-    System.out.println("Running testGetRunInfo test");
+    System.out.println("Running testGetRunInfo");
 
     EtClientServices myService = new EtClientServices();
 
@@ -57,7 +58,7 @@ public class TestEtClientServices {
   @Test
   public void testGetManufacturerId() throws UnsupportedEncodingException,
                                       EtClientException, IOException {
-    System.out.println("Running testGetManufacturerId test");
+    System.out.println("Running testGetManufacturerId");
 
     EtClientServices myService = new EtClientServices("Dev", null, true);
 
@@ -73,6 +74,43 @@ public class TestEtClientServices {
         } else {
           System.out.println("Key '" + k + "' has value: " + v.toString());
         }
+      }
+    } catch (Exception ex) {
+      System.out.println("post failed with message " + ex.getMessage());
+      throw new EtClientException(ex.getMessage());
+    }
+    finally {
+      myService.close();
+    }
+  }
+
+  @Test
+  public void testGetHardwareHierarchy() throws UnsupportedEncodingException,
+                                                EtClientException, IOException {
+    System.out.println("Running testGetHardwareHierarchy");
+
+    EtClientServices myService = new EtClientServices("Raw", null, true);
+
+    try {
+      Map<String, Object> results =
+        myService.getHardwareHierarchy("dessert_01", "dessert");
+
+      assertNotNull(results);
+      for (String k: results.keySet() ) {
+        Object v = results.get(k);
+        if (v == null) {
+          System.out.println("Key '" + k + "' has value null");
+        } else {
+          System.out.println("Key '" + k + "' has value: " + v.toString());
+        }
+      }
+      ArrayList< Map<String, Object> > rows =
+        (ArrayList<Map<String, Object> >) results.get("hierarchy");
+      for (Map <String, Object> row: rows) {
+        for (String k: row.keySet() ) {
+          System.out.print("Key '" + k + "': " + row.get(k).toString() + " ");
+        }
+        System.out.println(" ");
       }
     } catch (Exception ex) {
       System.out.println("post failed with message " + ex.getMessage());
