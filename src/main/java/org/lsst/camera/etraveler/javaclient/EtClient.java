@@ -29,7 +29,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
-
+import org.apache.http.util.EntityUtils;
 
 
 /**
@@ -40,7 +40,7 @@ public class EtClient {
   private String m_db="Prod";
   private String m_exp="LSST_CAMERA";
   private boolean m_prodServer=true;
-  private CloseableHttpClient m_httpclient;
+  private CloseableHttpClient m_httpclient = null;
   
   private static final String s_prodURL = "http://lsst-camera.slac.stanford.edu/eTraveler/";
   private static final String s_devURL = "http://lsst-camera-dev.slac.stanford.edu/eTraveler/";
@@ -50,17 +50,20 @@ public class EtClient {
       ClientProtocolException, IOException {
       System.out.println("Inside handleResponse\n");
       int status = response.getStatusLine().getStatusCode();
-      System.out.println("Returned response was ");
-      System.out.println(status);
+      //System.out.println("Returned response was ");
+      //System.out.println(status);
       if (status >= 200 && status < 305) {
         HttpEntity entity = response.getEntity();
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        entity.writeTo(out);
+        if (entity == null) return null;
+        //ByteArrayOutputStream out = new ByteArrayOutputStream();
+        //entity.writeTo(out);
         ObjectMapper mapper = new ObjectMapper();
-        Map<String, Object> results = mapper.readValue(out.toString(), Map.class);
+        Map<String, Object> results =
+          mapper.readValue(EntityUtils.toString(entity), Map.class);
         return results;
       } else {
-        throw new ClientProtocolException();
+        throw new
+          ClientProtocolException("Unexpected http response status: " + status);
       }
     }
   }
@@ -69,11 +72,15 @@ public class EtClient {
   public EtClient(String db, String exp) {
     if (db != null) m_db = db;
     if (exp != null) m_exp = exp;
-    m_httpclient =
-      HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
+    createClient();
   }
+
   public void setProdServer(boolean isProd) {
     m_prodServer = isProd;
+  }
+  private void createClient() {
+    m_httpclient =
+      HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
   }
   
   private String formURL(String command)  {
@@ -85,7 +92,10 @@ public class EtClient {
   
   public Map<String, Object> execute(String command,
                                      HashMap<String, Object> args)
-  throws JsonProcessingException, UnsupportedEncodingException, IOException {
+  throws JsonProcessingException, UnsupportedEncodingException,
+         EtClientException, IOException {
+    if (m_httpclient == null) createClient();
+    
     HttpPost httppost = new HttpPost(formURL(command));
     String payload = new ObjectMapper().writeValueAsString(args);
     List<NameValuePair> params = new ArrayList<NameValuePair>(1);
@@ -95,6 +105,13 @@ public class EtClient {
 
     MyResponseHandler hand = new MyResponseHandler();
     return m_httpclient.execute(httppost, hand);
+  }
+
+  public void close() throws IOException {
+    if (m_httpclient != null) {
+      m_httpclient.close();
+      m_httpclient = null;
+    }
   }
   
 }
