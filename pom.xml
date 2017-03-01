@@ -49,42 +49,65 @@
             <artifactId>httpclient</artifactId>
             <version>4.5.3</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.0</version>
+            <scope>test</scope>
+            <type>jar</type>
+        </dependency>
+	<dependency>
+          <groupId>mysql</groupId>
+          <artifactId>mysql-connector-java</artifactId>
+          <version>5.1.18</version>
+          <scope>provided</scope>
+	</dependency>
     </dependencies>
     <build>
         
-            <plugins>
+      <plugins>
                 
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.19.1</version>
-		    <!--
-                    <configuration>
-                        <systemPropertyVariables>
-                            <Raw.username>${Raw.username}</Raw.username>
-                            <Raw.pwd>${Raw.pwd}</Raw.pwd>
-                            <Raw.dbname>${Raw.dbname}</Raw.dbname>
-                            <Test.username>${Test.username}</Test.username>
-                            <Test.pwd>${Test.pwd}</Test.pwd>
-                            <Test.dbname>${Test.dbname}</Test.dbname>
-                            <Dev.username>${Dev.username}</Dev.username>
-                            <Dev.pwd>${Dev.pwd}</Dev.pwd> 
-                            <Dev.dbname>${Dev.dbname}</Dev.dbname>                          
-                        </systemPropertyVariables>
-			</configuration>
-			-->
-                </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>2.19.1</version>
+        <configuration>
+          <systemPropertyVariables>
+            <Raw.username>${Raw.username}</Raw.username>
+            <Raw.pwd>${Raw.pwd}</Raw.pwd>
+            <Raw.dbname>${Raw.dbname}</Raw.dbname>
+            <Raw_ro.username>${Raw_ro.username}</Raw_ro.username>
+            <Raw_ro.pwd>${Raw_ro.pwd}</Raw_ro.pwd>
+            <Raw_ro.dbname>rd_lsst_camt</Raw_ro.dbname>
+            <Test.username>${Test.username}</Test.username>
+            <Test.pwd>${Test.pwd}</Test.pwd>
+            <Test.dbname>${Test.dbname}</Test.dbname>
+            <Test_ro.username>${Test_ro.username}</Test_ro.username>
+            <Test_ro.pwd>${Test_ro.pwd}</Test_ro.pwd>
+            <Test_ro.dbname>rd_lsst_cmft</Test_ro.dbname>
+            <Dev.username>${Dev.username}</Dev.username>
+            <Dev.pwd>${Dev.pwd}</Dev.pwd> 
+            <Dev.dbname>${Dev.dbname}</Dev.dbname>                                          <Dev_ro.username>${Dev_ro.username}</Dev_ro.username>
+            <Dev_ro.pwd>${Dev_ro.pwd}</Dev_ro.pwd> 
+            <Dev_ro.dbname>rd_lsst_cmdv</Dev_ro.dbname>
+            <Prod_ro.username>${Prod_ro.username}</Prod_ro.username>
+            <Prod_ro.pwd>${Prod_ro.pwd}</Prod_ro.pwd> 
+            <Prod_ro.dbname>rd_lsst_cam</Prod_ro.dbname>                          
+          </systemPropertyVariables>
+        </configuration>
+
+        </plugin>
    
-            </plugins>
+      </plugins>
         
     </build>
 
-      <scm>
+    <scm>
       <url>https://github.com/lsst-camera-dh/eTraveler-javaclient</url>
       <connection>scm:git:git::/github.com/lsst-camera-dh/eTraveler-javaclient.git</connection>
       <developerConnection>scm:git:ssh://git@github.com/lsst-camera-dh/eTraveler-javaclient.git</developerConnection>
       <tag>HEAD</tag>
-  </scm>
+    </scm>
 
 
     <repositories>
