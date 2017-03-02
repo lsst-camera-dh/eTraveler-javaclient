@@ -183,23 +183,23 @@ public class GetHarnessedData {
         ArrayList< HashMap<String, Object> >();
       expMap.put("instances", instances);
       instances.add(new HashMap<String, Object>());
-      instances.get(0).put("instanceNumber", (Integer) 0);
+      instances.get(0).put("schemaInstance", (Integer) 0);
     } else {
       expMap= (HashMap<String, Object>) m_results.get(expSN);
     }
-    int instanceNumber = rs.getInt("ressI");
+    int schemaInstance = rs.getInt("ressI");
     HashMap<String, Object> myInstance=null;
     ArrayList <HashMap<String, Object> > instances =
       (ArrayList <HashMap <String, Object> >) expMap.get("instances");
     for (HashMap<String, Object> iMap : instances ) {
-      if ((int) iMap.get("instanceNumber") == instanceNumber) {
+      if ((int) iMap.get("schemaInstance") == schemaInstance) {
         myInstance = iMap;
         break;
       }
     }
     if (myInstance == null) {
       myInstance = new HashMap<String, Object>();
-      myInstance.put("instanceNumber", instanceNumber);
+      myInstance.put("schemaInstance", schemaInstance);
       instances.add(myInstance);
     }
     HashMap<String, Object> instance0 =

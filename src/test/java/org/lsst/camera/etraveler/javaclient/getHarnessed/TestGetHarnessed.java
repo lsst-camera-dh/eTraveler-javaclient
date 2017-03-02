@@ -84,6 +84,22 @@ public class TestGetHarnessed {
       (ArrayList<Map <String, Object> >) first.get("instances");
     System.out.println("Component " + cmps.get(0) + " has " + instances.size()
                        + " instances ");
+    System.out.println("Contents of instance 0:");
+    
+    System.out.print("{");
+    for (String k : instances.get(0).keySet()) {
+      System.out.print(k + " : " + instances.get(0).get(k) + ", ");
+    }
+    System.out.println("}");
+    
+    System.out.println("\nContents of instance 1:");
+    
+    System.out.print("{");
+    for (String k : instances.get(1).keySet()) {
+      System.out.print(k + " : " + instances.get(1).get(k) + ", ");
+    }
+    System.out.println("}");
+    
   }
 
   @Test
