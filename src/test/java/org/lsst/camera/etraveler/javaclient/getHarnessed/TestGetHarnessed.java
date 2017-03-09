@@ -32,9 +32,9 @@ public class TestGetHarnessed {
     String nonprodUrl
       = "jdbc:mysql://mysql-dev01.slac.stanford.edu:3307/";
     String prodUrl="jdbc:mysql://mysql-node03.slac.stanford.edu/";
-    String db="Prod";
-
-    String dbUrl = prodUrl;
+    //String db="Prod";
+    String db="Dev";
+    String dbUrl = nonprodUrl;
 
     String ro = db + "_ro";
 
@@ -55,7 +55,7 @@ public class TestGetHarnessed {
     if (m_connect == null) System.out.println("No good connection");
   }
 
-  @Test
+  @Ignore @Test
   /**
      Get data for one CCD, one schema
    */
@@ -74,8 +74,10 @@ public class TestGetHarnessed {
     }
     System.out.println("");
     Map<String, Object> first = (Map<String, Object>) results.get(cmps.get(0));
-    System.out.println("Component map has the following keys: ");
+    //System.out.println("Component map has the following key:value pairs ");
+    System.out.println("Component map has the following keys ");
     for (String k : first.keySet() ) {
+      //System.out.print(" " + k + ":" + first.get(k));
       System.out.print(" " + k);
     }
     System.out.println("");
@@ -102,7 +104,7 @@ public class TestGetHarnessed {
     
   }
 
-  @Test
+  @Ignore @Test
   /**
      Get data for all CCDs with specified model, one schema
    */
@@ -122,7 +124,7 @@ public class TestGetHarnessed {
     }
     System.out.println("");
     Map<String, Object> first = (Map<String, Object>) results.get(cmps.get(0));
-    System.out.println("Component map has the following keys: ");
+    System.out.println("Component map has the following keys ");
     for (String k : first.keySet() ) {
       System.out.print(" " + k);
     }
@@ -139,7 +141,7 @@ public class TestGetHarnessed {
    * @throws GetHarnessedException
    * @throws SQLException
    */
-  @Test
+  @Ignore @Test
   /**
      Get data for all CCDs with specified model, one schema, filter on "amp"
    */
@@ -165,6 +167,11 @@ public class TestGetHarnessed {
     for (String k : first.keySet() ) {
       System.out.print(" " + k);
     }
+    //System.out.println("Component map has the following key: value pairs ");
+    //for (String k : first.keySet() ) {
+    //  System.out.print(" " + k + ":" + first.get(k));
+    //}
+
     System.out.println("");
 
     ArrayList<Map <String, Object> > instances =
@@ -172,11 +179,67 @@ public class TestGetHarnessed {
     System.out.println("Component " + cmps.get(0) + " has " + instances.size()
                        + " instances ");
   }
-  
-  
+
+  @Test
+  public void getRaftOneCCD() throws GetHarnessedException, SQLException {
+
+    System.out.println("Running test getRaftOneCCD");
+    GetHarnessedData getHarnessed = new GetHarnessedData(m_connect);
+
+    Pair<String, Object> filter =
+      new ImmutablePair<String, Object>("sensor_id", "ITL-3800C-102-Dev");
+    Map<String, Object> results =
+      getHarnessed.getResultsJH("SR-RTM-EOT-03", "LCA-11021_RTM",
+                                "fe55_raft_analysis",
+                                null, "LCA-11021_RTM-004_ETU2-Dev", filter);
+    printJHResults(results);
+  }
+
+  @Test
+  public void getRaftOneAmp() throws GetHarnessedException, SQLException {
+
+    System.out.println("Running test getRaftOneAmp");
+    GetHarnessedData getHarnessed = new GetHarnessedData(m_connect);
+
+    Pair<String, Object> filter =
+      new ImmutablePair<String, Object>("amp", 3);
+    Map<String, Object> results =
+      getHarnessed.getResultsJH("SR-RTM-EOT-03", "LCA-11021_RTM",
+                                "fe55_raft_analysis",
+                                null, "LCA-11021_RTM-004_ETU2-Dev", filter);
+    printJHResults(results);
+  }
+
   @After
   public void after() throws SQLException {
     m_connect.close();
     m_connect= null;
+  }
+  
+  private void printJHResults(Map<String, Object> results) {
+        System.out.println("Found results for these components: ");
+    ArrayList<String> cmps = new ArrayList<String>();
+    for (String expSN : results.keySet() ) {
+      cmps.add(expSN);
+      System.out.print(" " + expSN);
+    }
+    System.out.println("");
+
+    Map<String, Object> first = (Map<String, Object>) results.get(cmps.get(0));
+    System.out.println("Component map has the following keys ");
+    for (String k : first.keySet() ) {
+      System.out.println(" " + k);
+    }
+    System.out.println("Hardware id: " + first.get("hid"));
+    System.out.println("Root activity id: " + first.get("raid"));
+
+    ArrayList < Map<String, Object> > instances =
+      (ArrayList <Map <String, Object> > ) first.get("instances");
+    System.out.println("Instance array is of length " + instances.size() );
+    System.out.println("Instance data for this component:");
+    for (Map <String, Object> m : instances) {
+      System.out.println(m); System.out.println(" ");
+    }
+    
   }
 }
