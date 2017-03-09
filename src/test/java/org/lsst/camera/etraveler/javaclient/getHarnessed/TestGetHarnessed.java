@@ -38,7 +38,6 @@ public class TestGetHarnessed {
 
     String ro = db + "_ro";
 
-    // dbUrl += "rd_lsst_cam";
     String username = System.getProperty(ro + ".username");
     if (username == null)
       throw new GetHarnessedException("setup: Unable to get username property");
@@ -167,10 +166,6 @@ public class TestGetHarnessed {
     for (String k : first.keySet() ) {
       System.out.print(" " + k);
     }
-    //System.out.println("Component map has the following key: value pairs ");
-    //for (String k : first.keySet() ) {
-    //  System.out.print(" " + k + ":" + first.get(k));
-    //}
 
     System.out.println("");
 
@@ -210,6 +205,19 @@ public class TestGetHarnessed {
     printJHResults(results);
   }
 
+  @Test
+  public void getRaftRun()  throws GetHarnessedException, SQLException {
+
+    System.out.println("Running test getRaftRun");
+    GetHarnessedData getHarnessed = new GetHarnessedData(m_connect);
+
+    Pair<String, Object> filter =
+      new ImmutablePair<String, Object>("sensor_id", "ITL-3800C-102-Dev");
+    Map<String, Object> results =
+      getHarnessed.getRunResults("4689D", "fe55_raft_analysis", filter);
+    printRunResults(results);
+  }
+  
   @After
   public void after() throws SQLException {
     m_connect.close();
@@ -241,5 +249,21 @@ public class TestGetHarnessed {
       System.out.println(m); System.out.println(" ");
     }
     
+  }
+
+  private void printRunResults(Map<String, Object> results) {
+    System.out.println("Outer map has following non-instance key/value pairs");
+    for (String k : results.keySet() ) {
+      if (!k.equals("instances") ) {
+        System.out.println(k + ":" + results.get(k));
+      }
+    }
+    ArrayList < Map<String, Object> > instances =
+      (ArrayList <Map <String, Object> > ) results.get("instances");
+    System.out.println("Instance array is of length " + instances.size() );
+    System.out.println("Instance data for this schema:");
+    for (Map <String, Object> m : instances) {
+      System.out.println(m); System.out.println(" ");
+    }
   }
 }

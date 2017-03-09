@@ -26,6 +26,9 @@ public class GetHarnessedData {
   private String m_schemaName=null;
   private String m_model=null;
   private String m_expSN=null;
+  private int m_run=0;
+  private int m_oneRai;
+  private int m_oneHid;
   private ImmutablePair<String, Object> m_filter=null;
   
   private String m_raiList=null;
@@ -40,11 +43,36 @@ public class GetHarnessedData {
   private static final int DT_ABSENT = -2, DT_UNKNOWN = -1,
     DT_FLOAT = 0, DT_INT = 1, DT_STRING = 2;
 
+  /**
+     Argument should be string representation of either a valid
+     positive integer or valid positive integer followed by one
+     non-numeric character, such as "1234D"
+     Return integer equivalent, ignoring final non-numeric character
+     if there is one.
+   */
+  private static int formRunInt(String st) throws GetHarnessedException {
+    int theInt;
+    try {
+      theInt = Integer.parseInt(st);
+      } catch (NumberFormatException e) {
+      try {
+        theInt = Integer.parseInt(st.substring(0, st.length() -1));
+      }  catch (NumberFormatException e2) {
+        throw new GetHarnessedException("Supplied run value " + st +
+                                        " is not valid");
+      }
+      if (theInt < 1) {
+        throw new GetHarnessedException("Supplied run value " + st +
+                                        " is not valid");
+      }
+    }
+    return theInt;
+  }
   private static int
     pruneInstances(Pair<String, Object> filter,
                    ArrayList< HashMap<String, Object> > instances,
                    int dtype) throws GetHarnessedException {
-    if (dtype == DT_ABSENT) return dtype;
+      if (dtype == DT_ABSENT) return dtype;
 
     String key = filter.getLeft();
     Object val = filter.getRight();
@@ -62,7 +90,7 @@ public class GetHarnessedData {
           if (t.equals("string")) {
             valType=DT_STRING;
           }  else {
-            throw new GetHarnessedException("prune: Unrecognized data type");
+            throw new GetHarnessedException("pruneInstances: Unrecognized data type");
           }
         }
       }
@@ -114,7 +142,7 @@ public class GetHarnessedData {
     // There are 6 replacements to be made.  All of them are results table
     // name (e.g. "FloatResultHarnessed")
     String sqlString=
-      "select ?.name as resname,?.value as resvalue,?.schemaInstance as ressI,A.id as aid,Process.name as pname,A.rootActivityId as raid, A.hardwareId as hid,A.processId as pid,ASH.activityStatusId as actStatus from  ? join Activity A on ?.activityId=A.id join ActivityStatusHistory ASH on A.id=ASH.activityId join ActivityFinalStatus on ActivityFinalStatus.id = ASH.activityStatusId join Process on Process.id=A.processId where ActivityFinalStatus.name='success' and ?.schemaName='" + m_schemaName;
+      "select ?.name as resname,?.value as resvalue,?.schemaInstance as ressI,A.id as aid,A.rootActivityId as raid, A.hardwareId as hid,A.processId as pid,Process.name as pname,ASH.activityStatusId as actStatus from  ? join Activity A on ?.activityId=A.id join ActivityStatusHistory ASH on A.id=ASH.activityId join ActivityFinalStatus on ActivityFinalStatus.id = ASH.activityStatusId join Process on Process.id=A.processId where ActivityFinalStatus.name='success' and ?.schemaName='" + m_schemaName;
     sqlString += "' and A.rootActivityId in " + m_raiList + " order by A.hardwareId asc, A.rootActivityId desc, A.processId asc, A.id desc, ressI asc, resname";
 
     
@@ -127,6 +155,67 @@ public class GetHarnessedData {
     return m_results;
   }
 
+
+
+  public Map<String, Object>
+    getRunResults(int runInt, String schemaName, Pair<String, Object> filter)
+    throws GetHarnessedException, SQLException {
+        if (m_connect == null)
+      throw new GetHarnessedException("Set connection before attempting to fetch data");
+    checkNull(schemaName, "schemaName argument must be non-null");
+    clearCache();
+
+    m_schemaName = schemaName;
+    m_run = runInt;
+
+    if (filter != null) {
+      m_filter = new
+        ImmutablePair<String, Object> (filter.getLeft(), filter.getRight());
+    }
+
+    getRunParameters();
+    m_results = new HashMap<String, Object>();
+    m_results.put("run", m_run);
+    m_results.put("experimentSN", m_expSN);
+    m_results.put("hid", m_oneHid);
+
+    m_results.put("schemaName", m_schemaName);
+    m_results.put("instances", new ArrayList <HashMap<String, Object> > ());
+    //Note:  for all schema case, need to add another level.
+    // Instead of "schemaName" and "instances" keys above, have, e.g.
+    // m_results.add("schemas",
+    //         new HashMap<String, ArrayList <HashMap<String, Object> > >();
+    // where values for outermost key are schema names
+
+    // Need alternate version of query for all schemas.  Select schemaName
+    // column; remove condition on schema name from "where" clause
+
+    String sql="select ?.name as resname,?.value as resvalue,?.schemaInstance as ressI,A.id as aid,A.processId as pid,Process.name as pname,ASH.activityStatusId as actStatus from ? join Activity A on ?.activityId=A.id join ActivityStatusHistory ASH on A.id=ASH.activityId join ActivityFinalStatus on ActivityFinalStatus.id=ASH.activityStatusId join Process on Process.id=A.processId where ?.schemaName='";
+    sql += m_schemaName;
+    sql += "' and A.rootActivityId='" + m_oneRai + "' and ActivityFinalStatus.name='success' order by A.processId asc, A.id desc, ressI asc, resname";
+    
+    executeGenRunQuery(sql, "FloatResultHarnessed", DT_FLOAT);
+    executeGenRunQuery(sql, "IntResultHarnessed", DT_INT);
+    executeGenRunQuery(sql, "StringResultHarnessed", DT_STRING);
+
+    if (filter != null) {
+      ArrayList<HashMap<String, Object> > instances =
+        (ArrayList<HashMap<String, Object>> ) m_results.get("instances");
+      GetHarnessedData.pruneInstances(m_filter, instances, DT_UNKNOWN);
+    }
+    return m_results;
+  }
+
+
+  
+  public Map<String, Object>
+    getRunResults(String run, String schemaName, Pair<String, Object> filter)
+    throws GetHarnessedException, SQLException {
+
+    int runInt = GetHarnessedData.formRunInt(run);
+    return getRunResults(runInt, schemaName, filter);
+  }
+  
   /* This subquery is used to find possibly interesting traveler root ids */
   private String hidSubquery() {
     String subq = "select H2.id as hid2 from Hardware H2 join HardwareType HT on H2.hardwareTypeId=HT.id where HT.name='" + m_hardwareType + "'";
@@ -138,6 +227,23 @@ public class GetHarnessedData {
     return subq;
   }
 
+  /**
+     Find per-run parameters when we already have a run
+  */
+  private void getRunParameters() throws SQLException,GetHarnessedException {
+    String sql= "select RunNumber.rootActivityId as rai, Activity.hardwareId as hid, Hardware.lsstId as expSN, HardwareType.name as hname,Process.name as pname from RunNumber join Activity on RunNumber.rootActivityId=Activity.id join Hardware on Activity.hardwareId=Hardware.id join HardwareType on HardwareType.id=Hardware.hardwareTypeId join Process on Process.id=Activity.processId where runInt='" + m_run + "'";
+    ResultSet rs = m_connect.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE).executeQuery();
+    if (!rs.first()) {
+      throw new GetHarnessedException("No data found for run " + m_run);
+    }
+    m_oneRai = rs.getInt("rai");
+    m_expSN = rs.getString("expSN");
+    m_oneHid = rs.getInt("hid");
+    m_hardwareType = rs.getString("hname");
+    m_travelerName = rs.getString("pname");
+
+    return;
+  }
   /**
      Initialize per-run map and string rep. of runs
    */
@@ -190,6 +296,21 @@ public class GetHarnessedData {
     
   }
 
+  private void executeGenRunQuery(String sql, String tableName, int datatype)
+    throws SQLException, GetHarnessedException {
+    String sqlString = sql.replace("?", tableName);
+
+    PreparedStatement genQuery =
+      m_connect.prepareStatement(sqlString, ResultSet.TYPE_SCROLL_INSENSITIVE);
+
+    ResultSet rs = genQuery.executeQuery();
+
+    boolean gotRow = rs.first();
+    while (gotRow) {
+      gotRow = storeRunData(rs, datatype);
+    }
+    genQuery.close();
+  }
   /**
      Store a single key-value pair, creating and initializing 
      containing maps as needed.  Advance to next interesting row
@@ -226,11 +347,30 @@ public class GetHarnessedData {
       }
       return gotRow;
     }
-      
-    int schemaInstance = rs.getInt("ressI");
-    HashMap<String, Object> myInstance=null;
+
     ArrayList <HashMap<String, Object> > instances =
       (ArrayList <HashMap <String, Object> >) expMap.get("instances");
+
+    return GetHarnessedData.storeInInstances(instances, rs, datatype);
+  }
+
+  private boolean storeRunData( ResultSet rs, int datatype)
+    throws GetHarnessedException, SQLException {
+
+    ArrayList <HashMap<String, Object> > instances =
+      (ArrayList <HashMap <String, Object> >) m_results.get("instances");
+
+    return GetHarnessedData.storeInInstances(instances, rs, datatype);
+  }
+
+  private static boolean
+    storeInInstances(ArrayList< HashMap<String, Object> >instances,
+                     ResultSet rs, int datatype)
+    throws SQLException, GetHarnessedException {
+    int schemaInstance = rs.getInt("ressI");
+    HashMap<String, Object> myInstance=null;
+    boolean gotRow = true;
+
     for (HashMap<String, Object> iMap : instances ) {
       if ((int) iMap.get("schemaInstance") == schemaInstance) {
         myInstance = iMap;
@@ -278,6 +418,7 @@ public class GetHarnessedData {
     }
     return rs.relative(1);
   }
+    
 
   /**
      Apply filter, discarding unwanted entries.  This implementation
@@ -288,12 +429,13 @@ public class GetHarnessedData {
     Object val = m_filter.getRight();
     boolean first = true;
     int  valType = DT_UNKNOWN;
+
     for (String expSN : m_results.keySet() ) {
       HashMap<String, Object> expMap =
         (HashMap<String, Object>) m_results.get(expSN);
       ArrayList< HashMap<String, Object> > iList =
         (ArrayList< HashMap<String, Object> >) expMap.get("instances");
-
+      
       valType = GetHarnessedData.pruneInstances(m_filter, iList, valType);
       if (valType == DT_UNKNOWN) return;
     }
@@ -314,5 +456,9 @@ public class GetHarnessedData {
     m_raiMap=null;
     m_hMap=null;
     m_results=null;
+    m_run=0;
+    m_oneRai=0;
+    m_oneHid=0;
   }
+
 }
