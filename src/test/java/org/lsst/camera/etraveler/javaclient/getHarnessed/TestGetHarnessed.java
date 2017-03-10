@@ -176,7 +176,7 @@ public class TestGetHarnessed {
                        + " instances ");
   }
 
-  @Test
+  @Ignore @Test
   public void getRaftOneCCD() throws GetHarnessedException, SQLException {
 
     System.out.println("Running test getRaftOneCCD");
@@ -191,7 +191,7 @@ public class TestGetHarnessed {
     printJHResults(results);
   }
 
-  @Test
+  @Ignore @Test
   public void getRaftVersions() throws GetHarnessedException, SQLException {
 
     System.out.println("Running test getRaftVersions");
@@ -240,8 +240,6 @@ public class TestGetHarnessed {
     System.out.println("Running test getVersionsRun");
     GetHarnessedData getHarnessed = new GetHarnessedData(m_connect);
 
-    //Pair<String, Object> filter =
-    //  new ImmutablePair<String, Object>("sensor_id", "ITL-3800C-102-Dev");
     Map<String, Object> results =
       getHarnessed.getRunResults("4712D", "package_versions", null);
     printRunResults(results);
@@ -253,13 +251,25 @@ public class TestGetHarnessed {
     System.out.println("Running test getAllRun");
     GetHarnessedData getHarnessed = new GetHarnessedData(m_connect);
 
-    //Pair<String, Object> filter =
-    //  new ImmutablePair<String, Object>("sensor_id", "ITL-3800C-102-Dev");
     Map<String, Object> results =
-      getHarnessed.getRunResults(4712, null);
+      getHarnessed.getRunResults("4689D", null);
+    printRunResultsAll(results);
+  }
+
+@Test
+  public void getAllRunFiltered() throws GetHarnessedException, SQLException {
+
+    System.out.println("Running test getAllRunRiltered");
+    GetHarnessedData getHarnessed = new GetHarnessedData(m_connect);
+
+    Pair<String, Object> filter =
+      new ImmutablePair<String, Object>("sensor_id", "ITL-3800C-102-Dev");
+    Map<String, Object> results =
+      getHarnessed.getRunResults("4689D", filter);
     printRunResultsAll(results);
   }
   
+    
   @After
   public void after() throws SQLException {
     m_connect.close();

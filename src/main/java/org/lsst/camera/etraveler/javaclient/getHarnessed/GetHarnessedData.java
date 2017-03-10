@@ -213,7 +213,14 @@ public class GetHarnessedData {
     return m_results;
   }
 
+  public Map<String, Object>
+    getRunResults(String run, Pair<String, Object> filter)
+    throws GetHarnessedException, SQLException {
+    int runInt = GetHarnessedData.formRunInt(run);
+    return getRunResults(runInt, filter);
+  }
 
+  
   public Map<String, Object>
     getRunResults(int runInt, Pair<String, Object> filter)
     throws GetHarnessedException, SQLException {
