@@ -155,6 +155,13 @@ public class GetHarnessedData {
     return m_results;
   }
 
+  public Map<String, Object>
+    getRunResults(String run, String schemaName, Pair<String, Object> filter)
+    throws GetHarnessedException, SQLException {
+
+    int runInt = GetHarnessedData.formRunInt(run);
+    return getRunResults(runInt, schemaName, filter);
+  }
 
 
   public Map<String, Object>
@@ -207,14 +214,47 @@ public class GetHarnessedData {
   }
 
 
-  
   public Map<String, Object>
-    getRunResults(String run, String schemaName, Pair<String, Object> filter)
+    getRunResults(int runInt, Pair<String, Object> filter)
     throws GetHarnessedException, SQLException {
+    if (m_connect == null)
+      throw new GetHarnessedException("Set connection before attempting to fetch data");
+    clearCache();
 
-    int runInt = GetHarnessedData.formRunInt(run);
-    return getRunResults(runInt, schemaName, filter);
+    m_run = runInt;
+
+    if (filter != null) {
+      m_filter = new
+        ImmutablePair<String, Object> (filter.getLeft(), filter.getRight());
+    }
+
+    getRunParameters();
+    m_results = new HashMap<String, Object>();
+    m_results.put("run", m_run);
+    m_results.put("experimentSN", m_expSN);
+    m_results.put("hid", m_oneHid);
+    HashMap<String, ArrayList <HashMap<String, Object> > > schemaMap =
+      new HashMap<String, ArrayList <HashMap<String, Object> > >();
+
+    m_results.put("schemas", schemaMap);
+
+    String sql="select ?.schemaName as schname,?.name as resname,?.value as resvalue,?.schemaInstance as ressI,A.id as aid,A.processId as pid,Process.name as pname,ASH.activityStatusId as actStatus from ? join Activity A on ?.activityId=A.id join ActivityStatusHistory ASH on A.id=ASH.activityId join ActivityFinalStatus on ActivityFinalStatus.id=ASH.activityStatusId join Process on Process.id=A.processId ";
+    sql += " where A.rootActivityId='" + m_oneRai + "' and ActivityFinalStatus.name='success' order by schname,A.processId asc,A.id desc, ressI asc, resname";
+
+    executeGenRunQuery(sql, "FloatResultHarnessed", DT_FLOAT);
+    executeGenRunQuery(sql, "IntResultHarnessed", DT_INT);
+    executeGenRunQuery(sql, "StringResultHarnessed", DT_STRING);
+
+    if (filter != null) {
+      for (String schemaName : schemaMap.keySet()) {
+        ArrayList<HashMap<String, Object> > instances =
+          schemaMap.get(schemaName);
+        GetHarnessedData.pruneInstances(m_filter, instances, DT_UNKNOWN);
+      }
+    }
+    return m_results;
   }
+  
   
   /* This subquery is used to find possibly interesting traveler root ids */
   private String hidSubquery() {
@@ -306,8 +346,35 @@ public class GetHarnessedData {
     ResultSet rs = genQuery.executeQuery();
 
     boolean gotRow = rs.first();
-    while (gotRow) {
-      gotRow = storeRunData(rs, datatype);
+    if (!gotRow) {
+      genQuery.close();
+      return;
+    }
+    if (m_schemaName != null) {
+      while (gotRow) {
+        gotRow = storeRunData(rs, datatype);
+      }
+    }  else  {
+      String schemaName = null;
+      ArrayList<HashMap<String, Object> > ourList;
+      HashMap<String, ArrayList <HashMap<String, Object> > > schemaMap;
+      schemaMap =
+        (HashMap<String, ArrayList <HashMap<String, Object> > >) m_results.get("schemas");
+      while (gotRow) {
+        if (!rs.getString("schname").equals(schemaName)) {
+          schemaName = rs.getString("schname");
+          // make new ArrayList as value for new schema key in top map;
+          // create entry 0 in ArrayList
+          ourList = new ArrayList<HashMap<String, Object> >();
+          schemaMap.put(schemaName, ourList);
+          ourList.add(new HashMap<String, Object>());
+          ourList.get(0).put("schemaInstance", (Integer) 0);
+        } else {
+          ourList = schemaMap.get(schemaName);
+        }
+        gotRow = GetHarnessedData.storeInInstances(ourList, rs, datatype);
+      }
+      
     }
     genQuery.close();
   }
@@ -359,7 +426,7 @@ public class GetHarnessedData {
 
     ArrayList <HashMap<String, Object> > instances =
       (ArrayList <HashMap <String, Object> >) m_results.get("instances");
-
+    
     return GetHarnessedData.storeInInstances(instances, rs, datatype);
   }
 
