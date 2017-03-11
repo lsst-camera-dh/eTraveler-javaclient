@@ -68,6 +68,62 @@ public class GetHarnessedData {
     }
     return theInt;
   }
+  private static boolean
+    storeInInstances(ArrayList< HashMap<String, Object> >instances,
+                     ResultSet rs, int datatype)
+    throws SQLException, GetHarnessedException {
+    int schemaInstance = rs.getInt("ressI");
+    HashMap<String, Object> myInstance=null;
+    boolean gotRow = true;
+
+    for (HashMap<String, Object> iMap : instances ) {
+      if ((int) iMap.get("schemaInstance") == schemaInstance) {
+        myInstance = iMap;
+        if ((Integer) myInstance.get("activityId") != rs.getInt("aid")) {
+          if ((Integer) myInstance.get("processId") != rs.getInt("pid")) {
+            // Need a new instance after all
+            myInstance = null;
+          }  else { // skip past everything with this activityId
+            int thisAid= rs.getInt("aid");
+            while (thisAid == rs.getInt("aid") ) {
+              gotRow = rs.relative(1);
+              if (!gotRow) return gotRow;
+            }
+            return gotRow;
+          }
+        }
+        break;
+      }
+    }
+    if (myInstance == null) {
+      myInstance = new HashMap<String, Object>();
+      myInstance.put("schemaInstance", schemaInstance);
+      myInstance.put("activityId", rs.getInt("aid"));
+      myInstance.put("processId", rs.getInt("pid"));
+      myInstance.put("processName", rs.getString("pname"));
+      instances.add(myInstance);
+    }
+    HashMap<String, Object> instance0 =
+      (HashMap<String, Object>) instances.get(0);
+    switch (datatype) {
+    case DT_FLOAT:
+      myInstance.put(rs.getString("resname"), rs.getDouble("resvalue"));
+      instance0.put(rs.getString("resname"), "float");
+      break;
+    case DT_INT:
+      myInstance.put(rs.getString("resname"), rs.getInt("resvalue"));
+      instance0.put(rs.getString("resname"), "int");
+      break;
+    case DT_STRING:
+      myInstance.put(rs.getString("resname"), rs.getString("resvalue"));
+      instance0.put(rs.getString("resname"), "string");
+      break;
+    default:
+      throw new GetHarnessedException("Unkown datatype");
+    }
+    return rs.relative(1);
+  }
+    
   private static int
     pruneInstances(Pair<String, Object> filter,
                    ArrayList< HashMap<String, Object> > instances,
@@ -188,14 +244,6 @@ public class GetHarnessedData {
 
     m_results.put("schemaName", m_schemaName);
     m_results.put("instances", new ArrayList <HashMap<String, Object> > ());
-    //Note:  for all schema case, need to add another level.
-    // Instead of "schemaName" and "instances" keys above, have, e.g.
-    // m_results.add("schemas",
-    //         new HashMap<String, ArrayList <HashMap<String, Object> > >();
-    // where values for outermost key are schema names
-
-    // Need alternate version of query for all schemas.  Select schemaName
-    // column; remove condition on schema name from "where" clause
 
     String sql="select ?.name as resname,?.value as resvalue,?.schemaInstance as ressI,A.id as aid,A.processId as pid,Process.name as pname,ASH.activityStatusId as actStatus from ? join Activity A on ?.activityId=A.id join ActivityStatusHistory ASH on A.id=ASH.activityId join ActivityFinalStatus on ActivityFinalStatus.id=ASH.activityStatusId join Process on Process.id=A.processId where ?.schemaName='";
     sql += m_schemaName;
@@ -362,26 +410,7 @@ public class GetHarnessedData {
         gotRow = storeRunData(rs, datatype);
       }
     }  else  {
-      String schemaName = null;
-      ArrayList<HashMap<String, Object> > ourList;
-      HashMap<String, ArrayList <HashMap<String, Object> > > schemaMap;
-      schemaMap =
-        (HashMap<String, ArrayList <HashMap<String, Object> > >) m_results.get("schemas");
-      while (gotRow) {
-        if (!rs.getString("schname").equals(schemaName)) {
-          schemaName = rs.getString("schname");
-          // make new ArrayList as value for new schema key in top map;
-          // create entry 0 in ArrayList
-          ourList = new ArrayList<HashMap<String, Object> >();
-          schemaMap.put(schemaName, ourList);
-          ourList.add(new HashMap<String, Object>());
-          ourList.get(0).put("schemaInstance", (Integer) 0);
-        } else {
-          ourList = schemaMap.get(schemaName);
-        }
-        gotRow = GetHarnessedData.storeInInstances(ourList, rs, datatype);
-      }
-      
+      storeRunAll(rs, datatype);
     }
     genQuery.close();
   }
@@ -437,29 +466,102 @@ public class GetHarnessedData {
     return GetHarnessedData.storeInInstances(instances, rs, datatype);
   }
 
-  private static boolean
-    storeInInstances(ArrayList< HashMap<String, Object> >instances,
-                     ResultSet rs, int datatype)
+
+  /**
+     Apply filter, discarding unwanted entries.  This implementation
+     assumes all data comes from the same schema
+  */
+  private void prune() throws GetHarnessedException {
+    String key = m_filter.getLeft();
+    Object val = m_filter.getRight();
+    boolean first = true;
+    int  valType = DT_UNKNOWN;
+
+    for (String expSN : m_results.keySet() ) {
+      HashMap<String, Object> expMap =
+        (HashMap<String, Object>) m_results.get(expSN);
+      ArrayList< HashMap<String, Object> > iList =
+        (ArrayList< HashMap<String, Object> >) expMap.get("instances");
+      
+      valType = GetHarnessedData.pruneInstances(m_filter, iList, valType);
+      if (valType == DT_UNKNOWN) return;
+    }
+  }
+
+  /**  
+       Store everything for a run from one of the *ResultHarnessed tables 
+       Upon entry the result set is pointing at the first row, known not to be null
+  */
+  private void storeRunAll(ResultSet rs, int datatype) throws SQLException, GetHarnessedException {
+    // Better to put creation of 
+    HashMap<String, HashMap<String, ArrayList< HashMap <String, Object > > > > schemaMaps;
+    schemaMaps = (HashMap<String, HashMap<String, ArrayList< HashMap <String, Object > > > >)
+      m_results.get("schemas");
+
+    boolean gotRow = true;
+    String schname = ""; //rs.getString("schname");
+    String pname = ""; // rs.getString("pname");
+    HashMap<String, ArrayList< HashMap<String, Object> > > ourSchemaMap=null;
+    ArrayList<HashMap<String, Object> > ourInstanceList=null;   // assoc. with a particular schema, pname
+
+    while (gotRow) {
+      if (!(schname.equals(rs.getString("schname")))) {
+        schname = rs.getString("schname");
+        ourSchemaMap = getOurSchemaMap(schemaMaps, schname);
+        pname = "";
+      }
+      if (!pname.equals(rs.getString("pname"))) {
+        pname = rs.getString("pname");
+        ourInstanceList = getOurList(ourSchemaMap, pname);
+      }
+      gotRow = storeOne(rs, ourInstanceList, datatype);
+    }
+
+  }
+
+  // Could be static
+  HashMap<String, ArrayList<HashMap<String, Object> >>
+    getOurSchemaMap(HashMap<String, HashMap<String, ArrayList< HashMap<String, Object > > > > maps,
+                    String key) {
+    if (maps.containsKey(key)) return maps.get(key);
+    HashMap<String, ArrayList<HashMap<String, Object> > > newMap =
+      new   HashMap<String, ArrayList<HashMap<String, Object> >>();
+    maps.put(key, newMap);
+    return newMap;
+  }
+
+  // Could be static
+  ArrayList<HashMap<String, Object> >
+    getOurList(HashMap<String, ArrayList<HashMap<String, Object> >> ourMap, String key) {
+    if (ourMap.containsKey(key)) return ourMap.get(key);
+    ArrayList<HashMap<String, Object> > newList =
+      new ArrayList<HashMap<String, Object> > ();
+    // Make instance 0
+    HashMap<String, Object> instance0 = new HashMap<String, Object>();
+    instance0.put("schemaInstance", (Integer) 0);
+    newList.add(instance0);
+    ourMap.put(key, newList);
+    return newList;
+  }
+      
+                                                                       
+  /* Store a row and advance cursor.  If schema name and pid match but aid does not, skip over rows
+     until we've exhausted rows with that aid */
+  private boolean storeOne(ResultSet rs, ArrayList<HashMap <String, Object> > instances, int datatype) 
     throws SQLException, GetHarnessedException {
     int schemaInstance = rs.getInt("ressI");
     HashMap<String, Object> myInstance=null;
     boolean gotRow = true;
-
     for (HashMap<String, Object> iMap : instances ) {
       if ((int) iMap.get("schemaInstance") == schemaInstance) {
         myInstance = iMap;
         if ((Integer) myInstance.get("activityId") != rs.getInt("aid")) {
-          if ((Integer) myInstance.get("processId") != rs.getInt("pid")) {
-            // Need a new instance after all
-            myInstance = null;
-          }  else { // skip past everything with this activityId
-            int thisAid= rs.getInt("aid");
-            while (thisAid == rs.getInt("aid") ) {
-              gotRow = rs.relative(1);
-              if (!gotRow) return gotRow;
-            }
-            return gotRow;
+          int thisAid = rs.getInt("aid");
+          while (thisAid == rs.getInt("aid")) {
+            gotRow = rs.relative(1);
+            if (!gotRow) return gotRow;
           }
+          return gotRow;
         }
         break;
       }
@@ -468,8 +570,7 @@ public class GetHarnessedData {
       myInstance = new HashMap<String, Object>();
       myInstance.put("schemaInstance", schemaInstance);
       myInstance.put("activityId", rs.getInt("aid"));
-      myInstance.put("processId", rs.getInt("pid"));
-      myInstance.put("processName", rs.getString("pname"));
+      //myInstance.put("processId", rs.getInt("pid"));
       instances.add(myInstance);
     }
     HashMap<String, Object> instance0 =
@@ -492,28 +593,7 @@ public class GetHarnessedData {
     }
     return rs.relative(1);
   }
-    
-
-  /**
-     Apply filter, discarding unwanted entries.  This implementation
-     assumes all data comes from the same schema
-  */
-  private void prune() throws GetHarnessedException {
-    String key = m_filter.getLeft();
-    Object val = m_filter.getRight();
-    boolean first = true;
-    int  valType = DT_UNKNOWN;
-
-    for (String expSN : m_results.keySet() ) {
-      HashMap<String, Object> expMap =
-        (HashMap<String, Object>) m_results.get(expSN);
-      ArrayList< HashMap<String, Object> > iList =
-        (ArrayList< HashMap<String, Object> >) expMap.get("instances");
       
-      valType = GetHarnessedData.pruneInstances(m_filter, iList, valType);
-      if (valType == DT_UNKNOWN) return;
-    }
-  }
   private void checkNull(String val, String msg) throws GetHarnessedException {
     if (val == null) throw new GetHarnessedException(msg);
   }

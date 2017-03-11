@@ -328,17 +328,22 @@ public class TestGetHarnessed {
       }
     }
 
-    Map<String, ArrayList <Map<String, Object> > > schemaMap;
+    Map<String, Map<String, ArrayList <Map<String, Object> > > >schemaMap;
     schemaMap =
-      (Map<String, ArrayList <Map<String, Object> > >) results.get("schemas");
+      (Map<String, Map<String, ArrayList <Map<String, Object> > > >) results.get("schemas");
     for (String name : schemaMap.keySet() ) {
       System.out.println("Schema name " + name);
-      ArrayList < Map<String, Object> > instances =
-        (ArrayList <Map <String, Object> > ) schemaMap.get(name);
-      System.out.println("Instance array is of length " + instances.size() );
-      System.out.println("Instance data for this schema:");
-      for (Map <String, Object> m : instances) {
-        System.out.println(m); System.out.println(" ");
+      Map<String, ArrayList < Map<String, Object> > > pnameMaps =
+        (Map<String, ArrayList <Map <String, Object> > > ) schemaMap.get(name);
+      for (String pname : pnameMaps.keySet()) {
+        System.out.println("Step name " + pname);
+        ArrayList<Map <String, Object> > instances =
+          (ArrayList<Map <String, Object> > ) pnameMaps.get(pname);
+        System.out.println("Instance array is of length " + instances.size() );
+        System.out.println("Instance data for this schema:");
+        for (Map <String, Object> m : instances) {
+          System.out.println(m); System.out.println(" ");
+        }
       }
     }
   }
