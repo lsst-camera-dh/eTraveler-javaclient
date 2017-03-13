@@ -241,11 +241,12 @@ public class GetHarnessedData {
     m_results.put("run", m_run);
     m_results.put("experimentSN", m_expSN);
     m_results.put("hid", m_oneHid);
-
-    m_results.put("schemaName", m_schemaName);
-    m_results.put("instances", new ArrayList <HashMap<String, Object> > ());
-
-    String sql="select ?.name as resname,?.value as resvalue,?.schemaInstance as ressI,A.id as aid,A.processId as pid,Process.name as pname,ASH.activityStatusId as actStatus from ? join Activity A on ?.activityId=A.id join ActivityStatusHistory ASH on A.id=ASH.activityId join ActivityFinalStatus on ActivityFinalStatus.id=ASH.activityStatusId join Process on Process.id=A.processId where ?.schemaName='";
+    HashMap<String, HashMap<String, ArrayList <HashMap<String, Object> > > > schemaMap =
+      new HashMap<String, HashMap<String, ArrayList <HashMap<String, Object> > >>();
+    
+    m_results.put("schemas", schemaMap);
+    
+    String sql="select ?.schemaName as schname, ?.name as resname,?.value as resvalue,?.schemaInstance as ressI,A.id as aid,A.processId as pid,Process.name as pname,ASH.activityStatusId as actStatus from ? join Activity A on ?.activityId=A.id join ActivityStatusHistory ASH on A.id=ASH.activityId join ActivityFinalStatus on ActivityFinalStatus.id=ASH.activityStatusId join Process on Process.id=A.processId where ?.schemaName='";
     sql += m_schemaName;
     sql += "' and A.rootActivityId='" + m_oneRai + "' and ActivityFinalStatus.name='success' order by A.processId asc, A.id desc, ressI asc, resname";
     
@@ -254,9 +255,15 @@ public class GetHarnessedData {
     executeGenRunQuery(sql, "StringResultHarnessed", DT_STRING);
 
     if (filter != null) {
-      ArrayList<HashMap<String, Object> > instances =
-        (ArrayList<HashMap<String, Object>> ) m_results.get("instances");
-      GetHarnessedData.pruneInstances(m_filter, instances, DT_UNKNOWN);
+      for (String schName : schemaMap.keySet()) {
+        HashMap<String, ArrayList <HashMap<String, Object> > >stepMap =
+          schemaMap.get(schName);
+        for (String stepName : stepMap.keySet()) {
+          ArrayList<HashMap<String, Object> > instances =
+            stepMap.get(stepName);
+          GetHarnessedData.pruneInstances(m_filter, instances, DT_UNKNOWN);
+        }
+      }
     }
     return m_results;
   }
@@ -288,8 +295,8 @@ public class GetHarnessedData {
     m_results.put("run", m_run);
     m_results.put("experimentSN", m_expSN);
     m_results.put("hid", m_oneHid);
-    HashMap<String, ArrayList <HashMap<String, Object> > > schemaMap =
-      new HashMap<String, ArrayList <HashMap<String, Object> > >();
+    HashMap<String, HashMap<String, ArrayList <HashMap<String, Object> > > > schemaMap =
+      new HashMap<String, HashMap<String, ArrayList <HashMap<String, Object> > >>();
 
     m_results.put("schemas", schemaMap);
 
@@ -302,9 +309,13 @@ public class GetHarnessedData {
 
     if (filter != null) {
       for (String schemaName : schemaMap.keySet()) {
-        ArrayList<HashMap<String, Object> > instances =
+        HashMap<String, ArrayList <HashMap<String, Object> > >stepMap =
           schemaMap.get(schemaName);
-        GetHarnessedData.pruneInstances(m_filter, instances, DT_UNKNOWN);
+        for (String stepName : stepMap.keySet()) {
+          ArrayList<HashMap<String, Object> > instances =
+            stepMap.get(stepName);
+          GetHarnessedData.pruneInstances(m_filter, instances, DT_UNKNOWN);
+        }
       }
     }
     return m_results;
@@ -382,10 +393,17 @@ public class GetHarnessedData {
     ResultSet rs = genQuery.executeQuery();
 
     boolean gotRow = rs.first();
-    while (gotRow) {
-      String expSN = m_hMap.get(rs.getInt("hid"));
-      gotRow = storeData(expSN, rs, datatype);
-      //gotRow = rs.relative(1);
+    if (!gotRow) {
+      genQuery.close();
+      return;
+    }
+    if (m_schemaName != null) {
+      while (gotRow) {
+        String expSN = m_hMap.get(rs.getInt("hid"));
+        gotRow = storeData(expSN, rs, datatype);
+      }
+    } else {
+      throw new GetHarnessedException("Missing schema name");
     }
     genQuery.close();
     
@@ -405,13 +423,7 @@ public class GetHarnessedData {
       genQuery.close();
       return;
     }
-    if (m_schemaName != null) {
-      while (gotRow) {
-        gotRow = storeRunData(rs, datatype);
-      }
-    }  else  {
-      storeRunAll(rs, datatype);
-    }
+    storeRunAll(rs, datatype);
     genQuery.close();
   }
   /**
@@ -457,16 +469,6 @@ public class GetHarnessedData {
     return GetHarnessedData.storeInInstances(instances, rs, datatype);
   }
 
-  private boolean storeRunData( ResultSet rs, int datatype)
-    throws GetHarnessedException, SQLException {
-
-    ArrayList <HashMap<String, Object> > instances =
-      (ArrayList <HashMap <String, Object> >) m_results.get("instances");
-    
-    return GetHarnessedData.storeInInstances(instances, rs, datatype);
-  }
-
-
   /**
      Apply filter, discarding unwanted entries.  This implementation
      assumes all data comes from the same schema
@@ -499,8 +501,8 @@ public class GetHarnessedData {
       m_results.get("schemas");
 
     boolean gotRow = true;
-    String schname = ""; //rs.getString("schname");
-    String pname = ""; // rs.getString("pname");
+    String schname = "";
+    String pname = ""; 
     HashMap<String, ArrayList< HashMap<String, Object> > > ourSchemaMap=null;
     ArrayList<HashMap<String, Object> > ourInstanceList=null;   // assoc. with a particular schema, pname
 
@@ -570,7 +572,6 @@ public class GetHarnessedData {
       myInstance = new HashMap<String, Object>();
       myInstance.put("schemaInstance", schemaInstance);
       myInstance.put("activityId", rs.getInt("aid"));
-      //myInstance.put("processId", rs.getInt("pid"));
       instances.add(myInstance);
     }
     HashMap<String, Object> instance0 =

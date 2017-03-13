@@ -242,7 +242,7 @@ public class TestGetHarnessed {
 
     Map<String, Object> results =
       getHarnessed.getRunResults("4712D", "package_versions", null);
-    printRunResults(results);
+    printRunResultsAll(results);
   }
   
   @Test
