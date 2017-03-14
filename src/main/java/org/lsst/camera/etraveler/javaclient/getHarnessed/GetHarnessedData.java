@@ -230,37 +230,7 @@ public class GetHarnessedData {
     m_schemaName = schemaName;
     m_run = runInt;
 
-    if (filter != null) {
-      m_filter = new
-        ImmutablePair<String, Object> (filter.getLeft(), filter.getRight());
-    }
-
-    getRunParameters();
-    m_results = new HashMap<String, Object>();
-    m_results.put("run", m_run);
-    m_results.put("experimentSN", m_expSN);
-    m_results.put("hid", m_oneHid);
-    
-    HashMap<String, PerSchema> schemaMap = new HashMap<String, PerSchema> ();
-    
-    m_results.put("schemas", schemaMap);
-    
-    String sql="select ?.schemaName as schname, ?.name as resname,?.value as resvalue,?.schemaInstance as ressI,A.id as aid,A.processId as pid,Process.name as pname,ASH.activityStatusId as actStatus from ? join Activity A on ?.activityId=A.id join ActivityStatusHistory ASH on A.id=ASH.activityId join ActivityFinalStatus on ActivityFinalStatus.id=ASH.activityStatusId join Process on Process.id=A.processId where ?.schemaName='";
-    sql += m_schemaName;
-    sql += "' and A.rootActivityId='" + m_oneRai + "' and ActivityFinalStatus.name='success' order by A.processId asc, A.id desc, ressI asc, resname";
-    
-    executeGenRunQuery(sql, "FloatResultHarnessed", DT_FLOAT);
-    executeGenRunQuery(sql, "IntResultHarnessed", DT_INT);
-    executeGenRunQuery(sql, "StringResultHarnessed", DT_STRING);
-
-    if (filter != null) {
-      for (String schName : schemaMap.keySet()) {
-        PerSchema per = schemaMap.get(schName);
-        int dtype = DT_UNKNOWN;
-        per.prune(filter, dtype);
-      }
-    }
-    return m_results;
+    return getRunResults(filter);
   }
 
   public Map<String, Object>
@@ -280,6 +250,17 @@ public class GetHarnessedData {
 
     m_run = runInt;
 
+    return getRunResults(filter);
+  }
+
+  /**
+     Does most of the work after public routines handle other arguments
+     and appropriately set m_schemaName and m_run
+   */
+  private Map<String, Object>
+    getRunResults(Pair<String, Object> filter)
+    throws GetHarnessedException, SQLException {
+
     if (filter != null) {
       m_filter = new
         ImmutablePair<String, Object> (filter.getLeft(), filter.getRight());
@@ -293,8 +274,13 @@ public class GetHarnessedData {
     HashMap<String, PerSchema> schemaMap = new HashMap<String, PerSchema>();
     m_results.put("schemas", schemaMap);
 
-    String sql="select ?.schemaName as schname,?.name as resname,?.value as resvalue,?.schemaInstance as ressI,A.id as aid,A.processId as pid,Process.name as pname,ASH.activityStatusId as actStatus from ? join Activity A on ?.activityId=A.id join ActivityStatusHistory ASH on A.id=ASH.activityId join ActivityFinalStatus on ActivityFinalStatus.id=ASH.activityStatusId join Process on Process.id=A.processId ";
-    sql += " where A.rootActivityId='" + m_oneRai + "' and ActivityFinalStatus.name='success' order by schname,A.processId asc,A.id desc, ressI asc, resname";
+    String sql =
+     "select ?.schemaName as schname,?.name as resname,?.value as resvalue,?.schemaInstance as ressI,A.id as aid,A.processId as pid,Process.name as pname,ASH.activityStatusId as actStatus from ? join Activity A on ?.activityId=A.id join ActivityStatusHistory ASH on A.id=ASH.activityId join ActivityFinalStatus on ActivityFinalStatus.id=ASH.activityStatusId join Process on Process.id=A.processId where ";
+    if (m_schemaName != null) {
+      sql += "?.schemaName='" + m_schemaName +"' and ";
+    }
+    
+    sql += " A.rootActivityId='" + m_oneRai + "' and ActivityFinalStatus.name='success' order by schname,A.processId asc,A.id desc, ressI asc, resname";
 
     executeGenRunQuery(sql, "FloatResultHarnessed", DT_FLOAT);
     executeGenRunQuery(sql, "IntResultHarnessed", DT_INT);
@@ -308,8 +294,7 @@ public class GetHarnessedData {
       }
     }
     return m_results;
-  }
-  
+  }    
   
   /* This subquery is used to find possibly interesting traveler root ids */
   private String hidSubquery() {
@@ -389,6 +374,15 @@ public class GetHarnessedData {
     if (m_schemaName != null) {
       while (gotRow) {
         String expSN = m_hMap.get(rs.getInt("hid"));
+        /* New stuff starts here */
+        HashMap<String, Object> expMap = new HashMap<String, Object>();
+        m_results.put(expSN, expMap);
+        expMap.put("hid", rs.getInt("hid"));
+        expMap.put("raid", rs.getInt("raid"));
+        // Also fetch run number and put it in here
+        HashMap<String, PerSchema> schemas =
+          new HashMap<String, PerSchema>();
+        
         gotRow = storeData(expSN, rs, datatype);
       }
     } else {
@@ -412,7 +406,7 @@ public class GetHarnessedData {
       genQuery.close();
       return;
     }
-    storeRunAll(rs, datatype);
+    storeRunAll(m_results.get("schemas"), rs, datatype, 0);
     genQuery.close();
   }
   /**
@@ -482,10 +476,12 @@ public class GetHarnessedData {
   /**  
        Store everything for a run from one of the *ResultHarnessed tables 
        Upon entry the result set is pointing at the first row, known not to be null
+       Return false if no more data; true if there is another run 
   */
-  private void storeRunAll(ResultSet rs, int datatype) throws SQLException, GetHarnessedException {
+  private boolean storeRunAll(Object schemaMapsObject, ResultSet rs, int datatype,
+                           int rai) throws SQLException, GetHarnessedException {
     HashMap<String, PerSchema> schemaMaps =
-      (HashMap<String, PerSchema>) m_results.get("schemas");
+      (HashMap<String, PerSchema>) schemaMapsObject;
 
     boolean gotRow = true;
     String schname = "";
@@ -506,8 +502,13 @@ public class GetHarnessedData {
         ourInstanceList = ourSchemaMap.findOrAddStep(pname);
       }
       gotRow = storeOne(rs, ourInstanceList.getArrayList(), datatype);
+      if (rai > 0) {
+        if (!gotRow) return gotRow;
+        // If rai has changed, we're done with this component
+        if (rs.getInt("rai") != rai) return gotRow; 
+      }
     }
-
+    return gotRow;
   }
 
   PerSchema getOurSchemaMap(HashMap<String, PerSchema> maps, String key)  {

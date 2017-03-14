@@ -246,7 +246,7 @@ public class TestGetHarnessed {
     GetHarnessedData getHarnessed = new GetHarnessedData(m_connect);
 
     Map<String, Object> results =
-      getHarnessed.getRunResults("4712D", "package_versions", null);
+      getHarnessed.getRunResults("4689D", "package_versions", null);
     printRunResultsAll(results);
   }
   
