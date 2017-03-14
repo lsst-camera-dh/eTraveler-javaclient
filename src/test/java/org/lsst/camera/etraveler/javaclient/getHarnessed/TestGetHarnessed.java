@@ -77,36 +77,12 @@ public class TestGetHarnessed {
       cmps.add(expSN);
       System.out.print(" " + expSN);
     }
-    System.out.println("");
-    Map<String, Object> first = (Map<String, Object>) results.get(cmps.get(0));
-    //System.out.println("Component map has the following key:value pairs ");
-    System.out.println("Component map has the following keys ");
-    for (String k : first.keySet() ) {
-      //System.out.print(" " + k + ":" + first.get(k));
-      System.out.print(" " + k);
-    }
-    System.out.println("");
 
-    ArrayList<Map <String, Object> > instances =
-      (ArrayList<Map <String, Object> >) first.get("instances");
-    System.out.println("Component " + cmps.get(0) + " has " + instances.size()
-                       + " instances ");
-    System.out.println("Contents of instance 0:");
-    
-    System.out.print("{");
-    for (String k : instances.get(0).keySet()) {
-      System.out.print(k + " : " + instances.get(0).get(k) + ", ");
+
+    for (Object expObject : results.values() ) {
+      HashMap<String, Object> expMap = (HashMap<String, Object>) expObject;
+      printRunResultsAll(expMap);
     }
-    System.out.println("}");
-    
-    System.out.println("\nContents of instance 1:");
-    
-    System.out.print("{");
-    for (String k : instances.get(1).keySet()) {
-      System.out.print(k + " : " + instances.get(1).get(k) + ", ");
-    }
-    System.out.println("}");
-    
   }
 
   @Ignore @Test
@@ -128,17 +104,13 @@ public class TestGetHarnessed {
       System.out.print(" " + expSN);
     }
     System.out.println("");
-    Map<String, Object> first = (Map<String, Object>) results.get(cmps.get(0));
-    System.out.println("Component map has the following keys ");
-    for (String k : first.keySet() ) {
-      System.out.print(" " + k);
+    int iExp = 0;
+    for (Object expObject : results.values() ) {
+      HashMap<String, Object> expMap = (HashMap<String, Object>) expObject;
+      printRunResultsAll(expMap);
+      iExp++;
+      if (iExp > 3) break;
     }
-    System.out.println("");
-
-    ArrayList<Map <String, Object> > instances =
-      (ArrayList<Map <String, Object> >) first.get("instances");
-    System.out.println("Component " + cmps.get(0) + " has " + instances.size()
-                       + " instances ");
   }
 
   /**
@@ -160,28 +132,11 @@ public class TestGetHarnessed {
     Map<String, Object> results =
       getHarnessed.getResultsJH("SR-EOT-1", "ITL-CCD", "read_noise",
                                 "3800C", null, filter);
-    System.out.println("Found results for these components: ");
-    ArrayList<String> cmps = new ArrayList<String>();
-    for (String expSN : results.keySet() ) {
-      cmps.add(expSN);
-      System.out.print(" " + expSN);
-    }
-    System.out.println("");
-    Map<String, Object> first = (Map<String, Object>) results.get(cmps.get(0));
-    System.out.println("Component map has the following keys: ");
-    for (String k : first.keySet() ) {
-      System.out.print(" " + k);
-    }
 
-    System.out.println("");
-
-    ArrayList<Map <String, Object> > instances =
-      (ArrayList<Map <String, Object> >) first.get("instances");
-    System.out.println("Component " + cmps.get(0) + " has " + instances.size()
-                       + " instances ");
+    printJHResults(results);
   }
 
-  @Ignore @Test
+  @Test
   public void getRaftOneCCD() throws GetHarnessedException, SQLException {
 
     System.out.println("Running test getRaftOneCCD");
@@ -196,14 +151,12 @@ public class TestGetHarnessed {
     printJHResults(results);
   }
 
-  @Ignore @Test
+  @Test
   public void getRaftVersions() throws GetHarnessedException, SQLException {
 
     System.out.println("Running test getRaftVersions");
     GetHarnessedData getHarnessed = new GetHarnessedData(m_connect);
 
-    //Pair<String, Object> filter =
-    //  new ImmutablePair<String, Object>("sensor_id", "ITL-3800C-102-Dev");
     Map<String, Object> results =
       getHarnessed.getResultsJH("SR-RTM-EOT-03", "LCA-11021_RTM",
                                 "package_versions",
@@ -211,7 +164,7 @@ public class TestGetHarnessed {
     printJHResults(results);
   }
 
-  @Ignore @Test
+  @Test
   public void getRaftOneAmp() throws GetHarnessedException, SQLException {
 
     System.out.println("Running test getRaftOneAmp");
@@ -226,7 +179,7 @@ public class TestGetHarnessed {
     printJHResults(results);
   }
 
-  @Ignore @Test
+  @Test
   public void getRaftRun()  throws GetHarnessedException, SQLException {
 
     System.out.println("Running test getRaftRun");
@@ -236,10 +189,10 @@ public class TestGetHarnessed {
       new ImmutablePair<String, Object>("sensor_id", "ITL-3800C-102-Dev");
     Map<String, Object> results =
       getHarnessed.getRunResults("4689D", "fe55_raft_analysis", filter);
-    printRunResults(results);
+    printRunResultsAll(results);
   }
 
-  @Test
+  @Ignore @Test
   public void getVersionsRun() throws GetHarnessedException, SQLException {
 
     System.out.println("Running test getVersionsRun");
@@ -250,7 +203,7 @@ public class TestGetHarnessed {
     printRunResultsAll(results);
   }
   
-  @Test
+  @Ignore @Test
   public void getAllRun() throws GetHarnessedException, SQLException {
 
     System.out.println("Running test getAllRun");
@@ -261,7 +214,7 @@ public class TestGetHarnessed {
     printRunResultsAll(results);
   }
 
-@Test
+  @Ignore @Test
   public void getAllRunFiltered() throws GetHarnessedException, SQLException {
 
     System.out.println("Running test getAllRunRiltered");
@@ -295,33 +248,12 @@ public class TestGetHarnessed {
     for (String k : first.keySet() ) {
       System.out.println(" " + k);
     }
-    System.out.println("Hardware id: " + first.get("hid"));
-    System.out.println("Root activity id: " + first.get("raid"));
 
-    ArrayList < Map<String, Object> > instances =
-      (ArrayList <Map <String, Object> > ) first.get("instances");
-    System.out.println("Instance array is of length " + instances.size() );
-    System.out.println("Instance data for this component:");
-    for (Map <String, Object> m : instances) {
-      System.out.println(m); System.out.println(" ");
+    for (Object expObject : results.values() ) {
+      HashMap<String, Object> expMap = (HashMap<String, Object>) expObject;
+      printRunResultsAll(expMap);
     }
-    
-  }
 
-  private void printRunResults(Map<String, Object> results) {
-    System.out.println("Outer map has following non-instance key/value pairs");
-    for (String k : results.keySet() ) {
-      if (!k.equals("instances") ) {
-        System.out.println(k + ":" + results.get(k));
-      }
-    }
-    ArrayList < Map<String, Object> > instances =
-      (ArrayList <Map <String, Object> > ) results.get("instances");
-    System.out.println("Instance array is of length " + instances.size() );
-    System.out.println("Instance data for this schema:");
-    for (Map <String, Object> m : instances) {
-      System.out.println(m); System.out.println(" ");
-    }
   }
 
   /* For all-schema data */
@@ -337,19 +269,13 @@ public class TestGetHarnessed {
     Map<String, PerSchema > schemaMap;
     schemaMap =
       (Map<String, PerSchema>) results.get("schemas");
-    //      (Map<String, Map<String, ArrayList <Map<String, Object> > > >) results.get("schemas");
     for (String name : schemaMap.keySet() ) {
       System.out.println("Schema name " + name);
-      //Map<String, ArrayList < Map<String, Object> > > pnameMaps =
-      //  (Map<String, ArrayList <Map <String, Object> > > ) schemaMap.get(name);
       PerSchema perSchema = schemaMap.get(name); 
-      //for (String pname : pnameMaps.keySet()) {
-      //for (String pname : pnameMaps.keySet()) {
       for (String pname : perSchema.keySet()) {
         System.out.println("Step name " + pname);
         ArrayList<HashMap <String, Object> > instances =
           perSchema.get(pname).getArrayList();
-        //(ArrayList<Map <String, Object> > ) pnameMaps.get(pname);
         System.out.println("Instance array is of length " + instances.size() );
         System.out.println("Instance data for this schema:");
         for (Map <String, Object> m : instances) {
