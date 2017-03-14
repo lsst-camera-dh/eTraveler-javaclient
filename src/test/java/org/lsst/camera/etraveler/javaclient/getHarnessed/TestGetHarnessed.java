@@ -15,7 +15,12 @@ import java.util.ArrayList;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-// import org.lsst.camera.etraveler.backend.exceptions.EtravelerException;
+// Other applications will need imports
+// import org.lsst.camera.etravler.javaclient.getHarnessed.GetHarnessedData;
+// import org.lsst.camera.etravler.javaclient.getHarnessed.GetHarnessedException;
+// import org.lsst.camera.etravler.javaclient.getHarnessed.PerSchema;
+// import org.lsst.camera.etravler.javaclient.getHarnessed.PerStep;
+
 
 // Might move this to general-purpose utility to open connection
 import java.sql.DriverManager;
@@ -328,17 +333,23 @@ public class TestGetHarnessed {
       }
     }
 
-    Map<String, Map<String, ArrayList <Map<String, Object> > > >schemaMap;
+    //Map<String, Map<String, ArrayList <Map<String, Object> > > >schemaMap;
+    Map<String, PerSchema > schemaMap;
     schemaMap =
-      (Map<String, Map<String, ArrayList <Map<String, Object> > > >) results.get("schemas");
+      (Map<String, PerSchema>) results.get("schemas");
+    //      (Map<String, Map<String, ArrayList <Map<String, Object> > > >) results.get("schemas");
     for (String name : schemaMap.keySet() ) {
       System.out.println("Schema name " + name);
-      Map<String, ArrayList < Map<String, Object> > > pnameMaps =
-        (Map<String, ArrayList <Map <String, Object> > > ) schemaMap.get(name);
-      for (String pname : pnameMaps.keySet()) {
+      //Map<String, ArrayList < Map<String, Object> > > pnameMaps =
+      //  (Map<String, ArrayList <Map <String, Object> > > ) schemaMap.get(name);
+      PerSchema perSchema = schemaMap.get(name); 
+      //for (String pname : pnameMaps.keySet()) {
+      //for (String pname : pnameMaps.keySet()) {
+      for (String pname : perSchema.keySet()) {
         System.out.println("Step name " + pname);
-        ArrayList<Map <String, Object> > instances =
-          (ArrayList<Map <String, Object> > ) pnameMaps.get(pname);
+        ArrayList<HashMap <String, Object> > instances =
+          perSchema.get(pname).getArrayList();
+        //(ArrayList<Map <String, Object> > ) pnameMaps.get(pname);
         System.out.println("Instance array is of length " + instances.size() );
         System.out.println("Instance data for this schema:");
         for (Map <String, Object> m : instances) {

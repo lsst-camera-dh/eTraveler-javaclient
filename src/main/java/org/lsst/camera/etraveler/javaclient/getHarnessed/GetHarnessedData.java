@@ -14,7 +14,6 @@ import java.sql.Statement;
 import java.sql.ResultSet;
 import java.sql.ParameterMetaData;
 import java.sql.SQLException;
-import java.util.ArrayList;
 
 /*
    For now client must get a db connection and pass in
@@ -241,8 +240,8 @@ public class GetHarnessedData {
     m_results.put("run", m_run);
     m_results.put("experimentSN", m_expSN);
     m_results.put("hid", m_oneHid);
-    HashMap<String, HashMap<String, ArrayList <HashMap<String, Object> > > > schemaMap =
-      new HashMap<String, HashMap<String, ArrayList <HashMap<String, Object> > >>();
+    
+    HashMap<String, PerSchema> schemaMap = new HashMap<String, PerSchema> ();
     
     m_results.put("schemas", schemaMap);
     
@@ -256,13 +255,9 @@ public class GetHarnessedData {
 
     if (filter != null) {
       for (String schName : schemaMap.keySet()) {
-        HashMap<String, ArrayList <HashMap<String, Object> > >stepMap =
-          schemaMap.get(schName);
-        for (String stepName : stepMap.keySet()) {
-          ArrayList<HashMap<String, Object> > instances =
-            stepMap.get(stepName);
-          GetHarnessedData.pruneInstances(m_filter, instances, DT_UNKNOWN);
-        }
+        PerSchema per = schemaMap.get(schName);
+        int dtype = DT_UNKNOWN;
+        per.prune(filter, dtype);
       }
     }
     return m_results;
@@ -295,9 +290,7 @@ public class GetHarnessedData {
     m_results.put("run", m_run);
     m_results.put("experimentSN", m_expSN);
     m_results.put("hid", m_oneHid);
-    HashMap<String, HashMap<String, ArrayList <HashMap<String, Object> > > > schemaMap =
-      new HashMap<String, HashMap<String, ArrayList <HashMap<String, Object> > >>();
-
+    HashMap<String, PerSchema> schemaMap = new HashMap<String, PerSchema>();
     m_results.put("schemas", schemaMap);
 
     String sql="select ?.schemaName as schname,?.name as resname,?.value as resvalue,?.schemaInstance as ressI,A.id as aid,A.processId as pid,Process.name as pname,ASH.activityStatusId as actStatus from ? join Activity A on ?.activityId=A.id join ActivityStatusHistory ASH on A.id=ASH.activityId join ActivityFinalStatus on ActivityFinalStatus.id=ASH.activityStatusId join Process on Process.id=A.processId ";
@@ -308,14 +301,10 @@ public class GetHarnessedData {
     executeGenRunQuery(sql, "StringResultHarnessed", DT_STRING);
 
     if (filter != null) {
-      for (String schemaName : schemaMap.keySet()) {
-        HashMap<String, ArrayList <HashMap<String, Object> > >stepMap =
-          schemaMap.get(schemaName);
-        for (String stepName : stepMap.keySet()) {
-          ArrayList<HashMap<String, Object> > instances =
-            stepMap.get(stepName);
-          GetHarnessedData.pruneInstances(m_filter, instances, DT_UNKNOWN);
-        }
+      for (String schName : schemaMap.keySet()) {
+        PerSchema per = schemaMap.get(schName);
+        int dtype = DT_UNKNOWN;
+        per.prune(filter, dtype);
       }
     }
     return m_results;
@@ -495,16 +484,15 @@ public class GetHarnessedData {
        Upon entry the result set is pointing at the first row, known not to be null
   */
   private void storeRunAll(ResultSet rs, int datatype) throws SQLException, GetHarnessedException {
-    // Better to put creation of 
-    HashMap<String, HashMap<String, ArrayList< HashMap <String, Object > > > > schemaMaps;
-    schemaMaps = (HashMap<String, HashMap<String, ArrayList< HashMap <String, Object > > > >)
-      m_results.get("schemas");
+    HashMap<String, PerSchema> schemaMaps =
+      (HashMap<String, PerSchema>) m_results.get("schemas");
 
     boolean gotRow = true;
     String schname = "";
     String pname = ""; 
-    HashMap<String, ArrayList< HashMap<String, Object> > > ourSchemaMap=null;
-    ArrayList<HashMap<String, Object> > ourInstanceList=null;   // assoc. with a particular schema, pname
+    PerSchema ourSchemaMap = null;
+
+    PerStep ourInstanceList = null;
 
     while (gotRow) {
       if (!(schname.equals(rs.getString("schname")))) {
@@ -514,39 +502,21 @@ public class GetHarnessedData {
       }
       if (!pname.equals(rs.getString("pname"))) {
         pname = rs.getString("pname");
-        ourInstanceList = getOurList(ourSchemaMap, pname);
+        //ourInstanceList = getOurList(ourSchemaMap, pname);
+        ourInstanceList = ourSchemaMap.findOrAddStep(pname);
       }
-      gotRow = storeOne(rs, ourInstanceList, datatype);
+      gotRow = storeOne(rs, ourInstanceList.getArrayList(), datatype);
     }
 
   }
 
-  // Could be static
-  HashMap<String, ArrayList<HashMap<String, Object> >>
-    getOurSchemaMap(HashMap<String, HashMap<String, ArrayList< HashMap<String, Object > > > > maps,
-                    String key) {
+  PerSchema getOurSchemaMap(HashMap<String, PerSchema> maps, String key)  {
     if (maps.containsKey(key)) return maps.get(key);
-    HashMap<String, ArrayList<HashMap<String, Object> > > newMap =
-      new   HashMap<String, ArrayList<HashMap<String, Object> >>();
+    PerSchema newMap = new PerSchema();
     maps.put(key, newMap);
     return newMap;
   }
-
-  // Could be static
-  ArrayList<HashMap<String, Object> >
-    getOurList(HashMap<String, ArrayList<HashMap<String, Object> >> ourMap, String key) {
-    if (ourMap.containsKey(key)) return ourMap.get(key);
-    ArrayList<HashMap<String, Object> > newList =
-      new ArrayList<HashMap<String, Object> > ();
-    // Make instance 0
-    HashMap<String, Object> instance0 = new HashMap<String, Object>();
-    instance0.put("schemaInstance", (Integer) 0);
-    newList.add(instance0);
-    ourMap.put(key, newList);
-    return newList;
-  }
-      
-                                                                       
+  
   /* Store a row and advance cursor.  If schema name and pid match but aid does not, skip over rows
      until we've exhausted rows with that aid */
   private boolean storeOne(ResultSet rs, ArrayList<HashMap <String, Object> > instances, int datatype) 
