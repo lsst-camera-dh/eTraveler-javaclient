@@ -162,7 +162,7 @@ public class TestGetHarnessed {
     printJHResults(results);
   }
 
-  @Test
+  @Ignore @Test
   public void getRaftVersions() throws GetHarnessedException, SQLException {
 
     String tname="SR-RTM-EOT-03";
@@ -276,7 +276,27 @@ public class TestGetHarnessed {
       getHarnessed.getRunResults(run, filter);
     printRunResultsAll(results);
   }
-  
+
+  @Test
+  public void getRunFilepaths() throws GetHarnessedException, SQLException {
+
+    System.out.println("Running test getRunFilepaths");
+    String run="4689D";
+    String stepName = null;
+    System.out.println("Calling getRunFilepaths for run=" + run + ", all steps");
+    Map<String, ArrayList<String>> results = null;
+
+    GetHarnessedData getHarnessed = new GetHarnessedData(m_connect);
+    
+    results = getHarnessed.getFilepaths(run, stepName);
+    for (String s : results.keySet()) {
+      ArrayList<String> list = results.get(s);
+      System.out.println("\nFor stepname=" + s + " have " + list.size() + " files ");
+      for (String path : list) {
+        System.out.println("  " + path);
+      }
+    }
+  }
     
   @After
   public void after() throws SQLException {
