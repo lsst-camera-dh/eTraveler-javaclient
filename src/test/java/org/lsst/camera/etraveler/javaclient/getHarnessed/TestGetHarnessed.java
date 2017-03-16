@@ -42,8 +42,7 @@ public class TestGetHarnessed {
     String db="Dev";
     String dbUrl = nonprodUrl;
 
-    //String ro = db + "_ro";
-    String ro = db;
+    String ro = db + "_ro";
 
     String username = System.getProperty(ro + ".username");
     if (username == null)
