@@ -126,12 +126,15 @@ public class TestGetHarnessed {
 
     System.out.println("Running test getModelAmp3");
     GetHarnessedData getHarnessed = new GetHarnessedData(m_connect);
-
+    String tname="SR-EOT-1";
+    String htype="ITL-CCD";
+    String schname="read_noise";
+    String model="3800C";
     Pair<String, Object> filter =
       new ImmutablePair<String, Object>("amp", 3);
     Map<String, Object> results =
-      getHarnessed.getResultsJH("SR-EOT-1", "ITL-CCD", "read_noise",
-                                "3800C", null, filter);
+      getHarnessed.getResultsJH(tname, htype, schname,
+                                model, null, filter);
 
     printJHResults(results);
   }
@@ -142,53 +145,89 @@ public class TestGetHarnessed {
     System.out.println("Running test getRaftOneCCD");
     GetHarnessedData getHarnessed = new GetHarnessedData(m_connect);
 
+    String tname="SR-RTM-EOT-03";
+    String htype="LCA-11021_RTM";
+    String schname="fe55_raft_analysis";
+    String expSN="LCA-11021_RTM-004_ETU2-Dev";
     Pair<String, Object> filter =
       new ImmutablePair<String, Object>("sensor_id", "ITL-3800C-102-Dev");
+    System.out.println("Calling getResultsJH with ");
+    System.out.println("  traveler name = " + tname);
+    System.out.println("  htype name    = " + htype);
+    System.out.println("  schema name   = " + schname);
+    System.out.println("  experimentSN  = " + expSN);
+    System.out.println("  filter        = (" + filter.getLeft() + ", " + filter.getRight() + ")");
     Map<String, Object> results =
-      getHarnessed.getResultsJH("SR-RTM-EOT-03", "LCA-11021_RTM",
-                                "fe55_raft_analysis",
-                                null, "LCA-11021_RTM-004_ETU2-Dev", filter);
+      getHarnessed.getResultsJH(tname, htype, schname, null, expSN, filter);
     printJHResults(results);
   }
 
   @Test
   public void getRaftVersions() throws GetHarnessedException, SQLException {
 
+    String tname="SR-RTM-EOT-03";
+    String htype="LCA-11021_RTM";
+    String schname="package_versions";
+    String expSN="LCA-11021_RTM-004_ETU2-Dev";
+      
     System.out.println("Running test getRaftVersions");
     GetHarnessedData getHarnessed = new GetHarnessedData(m_connect);
 
+    System.out.println("Calling getResultsJH with ");
+    System.out.println("  traveler name = " + tname);
+    System.out.println("  htype name    = " + htype);
+    System.out.println("  schema name   = " + schname);
+    System.out.println("  experimentSN  = " + expSN);
+    
     Map<String, Object> results =
-      getHarnessed.getResultsJH("SR-RTM-EOT-03", "LCA-11021_RTM",
-                                "package_versions",
-                                null, "LCA-11021_RTM-004_ETU2-Dev", null);
+      getHarnessed.getResultsJH(tname, htype, schname, null, expSN, null);
+
     printJHResults(results);
   }
 
   @Test
   public void getRaftOneAmp() throws GetHarnessedException, SQLException {
-
+    String tname="SR-RTM-EOT-03";
+    String htype="LCA-11021_RTM";
+    String schname="fe55_raft_analysis";
+    String expSN="LCA-11021_RTM-004_ETU2-Dev";
+    
     System.out.println("Running test getRaftOneAmp");
     GetHarnessedData getHarnessed = new GetHarnessedData(m_connect);
 
     Pair<String, Object> filter =
       new ImmutablePair<String, Object>("amp", 3);
+
+    System.out.println("Calling getResultsJH with ");
+    System.out.println("  traveler name = " + tname);
+    System.out.println("  htype name    = " + htype);
+    System.out.println("  schema name   = " + schname);
+    System.out.println("  experimentSN  = " + expSN);
+    System.out.println("  filter        = (" + filter.getLeft() + ", " + filter.getRight() + ")");
+
     Map<String, Object> results =
-      getHarnessed.getResultsJH("SR-RTM-EOT-03", "LCA-11021_RTM",
-                                "fe55_raft_analysis",
-                                null, "LCA-11021_RTM-004_ETU2-Dev", filter);
+      getHarnessed.getResultsJH(tname, htype, schname, null, expSN, filter);
     printJHResults(results);
   }
 
   @Test
   public void getRaftRun()  throws GetHarnessedException, SQLException {
 
+    String run="4689D";
+    String schname="fe55_raft_analysis";
     System.out.println("Running test getRaftRun");
     GetHarnessedData getHarnessed = new GetHarnessedData(m_connect);
 
     Pair<String, Object> filter =
       new ImmutablePair<String, Object>("sensor_id", "ITL-3800C-102-Dev");
+    
+    System.out.println("Calling getRunResults with ");
+    System.out.println("  run           = " + run);
+    System.out.println("  schema name   = " + schname);
+    System.out.println("  filter        = (" + filter.getLeft() + ", " + filter.getRight() + ")");
+    
     Map<String, Object> results =
-      getHarnessed.getRunResults("4689D", "fe55_raft_analysis", filter);
+      getHarnessed.getRunResults(run, schname, filter);
     printRunResultsAll(results);
   }
 
@@ -206,24 +245,35 @@ public class TestGetHarnessed {
   @Ignore @Test
   public void getAllRun() throws GetHarnessedException, SQLException {
 
+    String run="4689D";
+
+    
     System.out.println("Running test getAllRun");
     GetHarnessedData getHarnessed = new GetHarnessedData(m_connect);
 
+    System.out.println("Calling getRunResults with ");
+    System.out.println("  run           = " + run);
+    
     Map<String, Object> results =
       getHarnessed.getRunResults("4689D", null);
     printRunResultsAll(results);
   }
 
-  @Ignore @Test
+  @Test
   public void getAllRunFiltered() throws GetHarnessedException, SQLException {
 
+    String run="4689D";
     System.out.println("Running test getAllRunRiltered");
     GetHarnessedData getHarnessed = new GetHarnessedData(m_connect);
 
     Pair<String, Object> filter =
       new ImmutablePair<String, Object>("sensor_id", "ITL-3800C-102-Dev");
+    System.out.println("Calling getRunResults with ");
+    System.out.println("  run           = " + run);
+    System.out.println("  filter        = (" + filter.getLeft() + ", " + filter.getRight() + ")");
+
     Map<String, Object> results =
-      getHarnessed.getRunResults("4689D", filter);
+      getHarnessed.getRunResults(run, filter);
     printRunResultsAll(results);
   }
   
@@ -260,27 +310,28 @@ public class TestGetHarnessed {
   private void printRunResultsAll(Map<String, Object> results) {
     System.out.println("Outer map has following non-instance key/value pairs");
     for (String k : results.keySet() ) {
-      if (!k.equals("schemas") ) {
+      if (!k.equals("steps") ) {
         System.out.println(k + ":" + results.get(k));
       }
     }
 
     //Map<String, Map<String, ArrayList <Map<String, Object> > > >schemaMap;
-    Map<String, PerSchema > schemaMap;
-    schemaMap =
-      (Map<String, PerSchema>) results.get("schemas");
-    for (String name : schemaMap.keySet() ) {
-      System.out.println("Schema name " + name);
-      PerSchema perSchema = schemaMap.get(name); 
-      for (String pname : perSchema.keySet()) {
-        System.out.println("Step name " + pname);
+    Map<String, PerStep > stepMap;
+    stepMap =
+      (Map<String, PerStep>) results.get("steps");
+    for (String name : stepMap.keySet() ) {
+      System.out.println("Step name " + name);
+      PerStep perStep = stepMap.get(name); 
+      for (String schname : perStep.keySet()) {
+        System.out.println("  Schema name " + schname);
         ArrayList<HashMap <String, Object> > instances =
-          perSchema.get(pname).getArrayList();
-        System.out.println("Instance array is of length " + instances.size() );
-        System.out.println("Instance data for this schema:");
+          perStep.get(schname).getArrayList();
+        System.out.println("  Instance array is of length " + instances.size() );
+        System.out.println("  Instance data for this step/schema:");
         for (Map <String, Object> m : instances) {
-          System.out.println(m); System.out.println(" ");
+          System.out.println(m);
         }
+        System.out.println(" ");
       }
     }
   }

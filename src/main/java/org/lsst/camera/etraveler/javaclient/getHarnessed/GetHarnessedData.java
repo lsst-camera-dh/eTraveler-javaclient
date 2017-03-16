@@ -111,7 +111,7 @@ public class GetHarnessedData {
     // name (e.g. "FloatResultHarnessed")
     String sqlString=
       "select ?.schemaName as schname,?.name as resname,?.value as resvalue,?.schemaInstance as ressI,A.id as aid,A.rootActivityId as raid, A.hardwareId as hid,A.processId as pid,Process.name as pname,ASH.activityStatusId as actStatus from  ? join Activity A on ?.activityId=A.id join ActivityStatusHistory ASH on A.id=ASH.activityId join ActivityFinalStatus on ActivityFinalStatus.id = ASH.activityStatusId join Process on Process.id=A.processId where ActivityFinalStatus.name='success' and ?.schemaName='" + m_schemaName;
-    sqlString += "' and A.rootActivityId in " + m_raiList + " order by A.hardwareId asc, A.rootActivityId desc, A.processId asc, A.id desc, ressI asc, resname";
+    sqlString += "' and A.rootActivityId in " + m_raiList + " order by A.hardwareId asc, A.rootActivityId desc, A.processId asc, schname,A.id desc, ressI asc, resname";
 
     m_results = new HashMap<String, Object>();
     executeGenQuery(sqlString, "FloatResultHarnessed", DT_FLOAT);
@@ -121,9 +121,9 @@ public class GetHarnessedData {
     if (filter != null)  {
       for (Object expObject : m_results.values()) {
         HashMap<String, Object> expMap = (HashMap<String, Object>) expObject;
-        HashMap<String, PerSchema> schemas =
-          (HashMap<String, PerSchema> ) expMap.get("schemas");
-        for (PerSchema per : schemas.values()) {
+        HashMap<String, PerStep> steps =
+          (HashMap<String, PerStep> ) expMap.get("steps");
+        for (PerStep per : steps.values()) {
           int dtype = DT_UNKNOWN;
           per.prune(filter, dtype);
         }
@@ -194,8 +194,8 @@ public class GetHarnessedData {
     m_results.put("run", m_run);
     m_results.put("experimentSN", m_expSN);
     m_results.put("hid", m_oneHid);
-    HashMap<String, PerSchema> schemaMap = new HashMap<String, PerSchema>();
-    m_results.put("schemas", schemaMap);
+    HashMap<String, PerStep> stepMap = new HashMap<String, PerStep>();
+    m_results.put("steps", stepMap);
 
     String sql =
      "select ?.schemaName as schname,?.name as resname,?.value as resvalue,?.schemaInstance as ressI,A.id as aid,A.processId as pid,Process.name as pname,ASH.activityStatusId as actStatus from ? join Activity A on ?.activityId=A.id join ActivityStatusHistory ASH on A.id=ASH.activityId join ActivityFinalStatus on ActivityFinalStatus.id=ASH.activityStatusId join Process on Process.id=A.processId where ";
@@ -203,15 +203,15 @@ public class GetHarnessedData {
       sql += "?.schemaName='" + m_schemaName +"' and ";
     }
     
-    sql += " A.rootActivityId='" + m_oneRai + "' and ActivityFinalStatus.name='success' order by schname,A.processId asc,A.id desc, ressI asc, resname";
+    sql += " A.rootActivityId='" + m_oneRai + "' and ActivityFinalStatus.name='success' order by A.processId asc,schname, A.id desc, ressI asc, resname";
 
     executeGenRunQuery(sql, "FloatResultHarnessed", DT_FLOAT);
     executeGenRunQuery(sql, "IntResultHarnessed", DT_INT);
     executeGenRunQuery(sql, "StringResultHarnessed", DT_STRING);
 
     if (filter != null) {
-      for (String schName : schemaMap.keySet()) {
-        PerSchema per = schemaMap.get(schName);
+      for (String pname : stepMap.keySet()) {
+        PerStep per = stepMap.get(pname);
         int dtype = DT_UNKNOWN;
         per.prune(filter, dtype);
       }
@@ -300,14 +300,14 @@ public class GetHarnessedData {
       return;
     }
     HashMap<String, Object> expMap = null;
-    HashMap<String, PerSchema> schemas;
+    HashMap<String, PerStep> steps;
     if (m_schemaName != null) {
       while (gotRow) {
         String expSN = m_hMap.get(rs.getInt("hid"));
         /* New stuff starts here */
         if (m_results.containsKey(expSN) ) {
           expMap = (HashMap<String, Object>) m_results.get(expSN);
-          schemas = (HashMap<String, PerSchema>) expMap.get("schemas");
+          steps = (HashMap<String, PerStep>) expMap.get("steps");
         } else  {
           expMap = new HashMap<String, Object>();
           m_results.put(expSN, expMap);
@@ -315,10 +315,10 @@ public class GetHarnessedData {
           expMap.put("raid", rs.getInt("raid"));
           expMap.put("runNumber", m_raiMap.get(rs.getInt("raid")));
 
-          schemas = new HashMap<String, PerSchema>();
-          expMap.put("schemas", schemas);
+          steps = new HashMap<String, PerStep>();
+          expMap.put("steps", steps);
         }
-        gotRow = storeRunAll(schemas, rs, datatype, rs.getInt("hid"));
+        gotRow = storeRunAll(steps, rs, datatype, rs.getInt("hid"));
       }
     } else {
       throw new GetHarnessedException("Missing schema name");
@@ -341,7 +341,7 @@ public class GetHarnessedData {
       genQuery.close();
       return;
     }
-    storeRunAll(m_results.get("schemas"), rs, datatype, 0);
+    storeRunAll(m_results.get("steps"), rs, datatype, 0);
     genQuery.close();
   }
 
@@ -350,17 +350,17 @@ public class GetHarnessedData {
        Upon entry the result set is pointing at the first row, known not to be null
        Return false if no more data; true if there is another run 
   */
-  private boolean storeRunAll(Object schemaMapsObject, ResultSet rs, int datatype,
+  private boolean storeRunAll(Object stepMapsObject, ResultSet rs, int datatype,
                            int hid) throws SQLException, GetHarnessedException {
-    HashMap<String, PerSchema> schemaMaps =
-      (HashMap<String, PerSchema>) schemaMapsObject;
+    HashMap<String, PerStep> stepMaps =
+      (HashMap<String, PerStep>) stepMapsObject;
 
     boolean gotRow = true;
-    String schname = "";
     String pname = ""; 
-    PerSchema ourSchemaMap = null;
+    String schname = "";
+    PerStep ourStepMap = null;
 
-    PerStep ourInstanceList = null;
+    PerSchema ourInstanceList = null;
 
     int raid = 0;
     if (hid > 0) { // could be more than one run
@@ -376,14 +376,14 @@ public class GetHarnessedData {
           return gotRow;
         }
       }
-      if (!(schname.equals(rs.getString("schname")))) {
-        schname = rs.getString("schname");
-        ourSchemaMap = getOurSchemaMap(schemaMaps, schname);
-        pname = "";
-      }
-      if (!pname.equals(rs.getString("pname"))) {
+      if (!(pname.equals(rs.getString("pname")))) {
         pname = rs.getString("pname");
-        ourInstanceList = ourSchemaMap.findOrAddStep(pname);
+        ourStepMap = getOurStepMap(stepMaps, pname);
+        schname = "";
+      }
+      if (!schname.equals(rs.getString("schname"))) {
+        schname = rs.getString("schname");
+        ourInstanceList = ourStepMap.findOrAddSchema(schname);
       }
       gotRow = storeOne(rs, ourInstanceList.getArrayList(), datatype);
       if (hid > 0) {
@@ -395,9 +395,9 @@ public class GetHarnessedData {
     return gotRow;
   }
 
-  PerSchema getOurSchemaMap(HashMap<String, PerSchema> maps, String key)  {
+  PerStep getOurStepMap(HashMap<String, PerStep> maps, String key)  {
     if (maps.containsKey(key)) return maps.get(key);
-    PerSchema newMap = new PerSchema();
+    PerStep newMap = new PerStep();
     maps.put(key, newMap);
     return newMap;
   }
