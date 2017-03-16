@@ -53,7 +53,7 @@ public class TestGetHarnessed {
     String dbname = System.getProperty(ro + ".dbname");
     if (dbname == null)
       throw new GetHarnessedException("setup: Unable to get dbname property");
-    else System.out.println("Found dbname=" + dbname);
+    else System.out.println("\n\nFound dbname=" + dbname);
     dbUrl += dbname;
     
     m_connect = DriverManager.getConnection(dbUrl, username, pwd);

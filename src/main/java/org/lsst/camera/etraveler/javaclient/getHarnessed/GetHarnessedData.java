@@ -116,7 +116,9 @@ public class GetHarnessedData {
     // There are 6 replacements to be made.  All of them are results table
     // name (e.g. "FloatResultHarnessed")
     String sqlString=
-      "select ?.schemaName as schname,?.name as resname,?.value as resvalue,?.schemaInstance as ressI,A.id as aid,A.rootActivityId as raid, A.hardwareId as hid,A.processId as pid,Process.name as pname,ASH.activityStatusId as actStatus from  ? join Activity A on ?.activityId=A.id join ActivityStatusHistory ASH on A.id=ASH.activityId join ActivityFinalStatus on ActivityFinalStatus.id = ASH.activityStatusId join Process on Process.id=A.processId where ActivityFinalStatus.name='success' and ?.schemaName='" + m_schemaName;
+      "select ?.schemaName as schname,?.name as resname,?.value as resvalue,?.schemaInstance as ressI,A.id as aid,A.rootActivityId as raid, A.hardwareId as hid,A.processId as pid,Process.name as pname,ASH.activityStatusId as actStatus from  ? join Activity A on ?.activityId=A.id "
+      + activityStatusJoins + " join Process on Process.id=A.processId where " +
+      activityStatusCondition + " and ?.schemaName='" + m_schemaName;
     sqlString += "' and A.rootActivityId in " + m_raiList + " order by A.hardwareId asc, A.rootActivityId desc, A.processId asc, schname,A.id desc, ressI asc, resname";
 
     m_results = new HashMap<String, Object>();
@@ -241,12 +243,14 @@ public class GetHarnessedData {
     m_results.put("steps", stepMap);
 
     String sql =
-     "select ?.schemaName as schname,?.name as resname,?.value as resvalue,?.schemaInstance as ressI,A.id as aid,A.processId as pid,Process.name as pname,ASH.activityStatusId as actStatus from ? join Activity A on ?.activityId=A.id join ActivityStatusHistory ASH on A.id=ASH.activityId join ActivityFinalStatus on ActivityFinalStatus.id=ASH.activityStatusId join Process on Process.id=A.processId where ";
+     "select ?.schemaName as schname,?.name as resname,?.value as resvalue,?.schemaInstance as ressI,A.id as aid,A.processId as pid,Process.name as pname,ASH.activityStatusId as actStatus from ? join Activity A on ?.activityId=A.id "
+      + activityStatusJoins + " join Process on Process.id=A.processId where ";
     if (m_schemaName != null) {
       sql += "?.schemaName='" + m_schemaName +"' and ";
     }
     
-    sql += " A.rootActivityId='" + m_oneRai + "' and ActivityFinalStatus.name='success' order by A.processId asc,schname, A.id desc, ressI asc, resname";
+    sql += " A.rootActivityId='" + m_oneRai + "' and " + activityStatusCondition +
+      " order by A.processId asc,schname, A.id desc, ressI asc, resname";
 
     executeGenRunQuery(sql, "FloatResultHarnessed", DT_FLOAT);
     executeGenRunQuery(sql, "IntResultHarnessed", DT_INT);
