@@ -17,6 +17,15 @@ import java.util.Map;
        Command to be executed
  */
 public class EtClientTag extends SimpleTagSupport {
+  private String m_dbname;
+  private String m_experiment;
+  private String m_command;
+  private String m_activity;
+  
+  public void setDbname(String arg) {m_dbname = arg;}
+  public void setCommand(String arg) {m_command = arg;}
+  public void setExperiment(String arg) {m_experiment = arg;}
+  public void setActivity(String arg) {m_activity = arg;}
   public void doTag() throws JspException,
   IOException {
     JspContext jspContext = getJspContext();
@@ -24,30 +33,30 @@ public class EtClientTag extends SimpleTagSupport {
       request = (HttpServletRequest)((PageContext)jspContext).getRequest();
 
 
-    String dbname = request.getParameter("dbname");
-    String experiment = request.getParameter("experiment");
+    //String dbname = request.getParameter("dbname");
+    //String experiment = request.getParameter("experiment");
     boolean devServer = false;  // set to true if param is present
 
-    String command = request.getParameter("command");
-    String activity = request.getParameter("activity");
-    if ((dbname == null) || (experiment==null) || 
-        (command == null) || (activity==null)) {
+    //String command = request.getParameter("command");
+    //String activity = request.getParameter("activity");
+    if ((m_dbname == null) || (m_experiment==null) || 
+        (m_command == null) || (m_activity==null)) {
       throw new JspException("Missing parameter(s)");
     }
         
-    if (!command.equals("getRunInfo")) {
-      throw new JspException("Unsupported command " + command);
+    if (!m_command.equals("getRunInfo")) {
+      throw new JspException("Unsupported command " + m_command);
     }
     int activityId = 0;
     try {
-      activityId = Integer.parseInt(activity);
+      activityId = Integer.parseInt(m_activity);
     } catch
         (NumberFormatException e) {
       throw new JspException("Non-integer value for activity parameter");
     }
 
     EtClientServices etClient =
-      new EtClientServices(dbname, experiment, true);
+      new EtClientServices(m_dbname, m_experiment, true);
     Map<String, Object> runInfo = null;
     try {
       runInfo = etClient.getRunInfo(activityId);

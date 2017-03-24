@@ -19,7 +19,7 @@
     </attribute>
     <attribute>
       <name>command</name>
-      <required>true</required>
+      
     </attribute>
     <attribute>
       <name>activity</name>

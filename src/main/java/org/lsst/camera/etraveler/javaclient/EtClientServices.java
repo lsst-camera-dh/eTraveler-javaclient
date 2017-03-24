@@ -17,6 +17,15 @@ public class EtClientServices  {
     m_client = new EtClient(db, exp);
     m_client.setProdServer(prodServer);
   }
+  public EtClientServices(String db, String exp, boolean prodServer,
+                          boolean localServer) {
+    m_client = new EtClient(db, exp);
+    m_client.setProdServer(prodServer);
+    if (localServer) {
+      m_client.useLocalServer();
+    }
+  }
+    
 
   public Map<String, Object> getRunInfo(int activityId) throws UnsupportedEncodingException, IOException, EtClientException {
     HashMap<String, Object> args = new HashMap<String, Object> ();
@@ -57,6 +66,18 @@ public class EtClientServices  {
     return consumeAck(results);
   }
 
+  public Map<String, Object>
+    getRunResults(String run, String schemaName)
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    HashMap<String, Object> args = new HashMap<String, Object> ();
+    args.put("run", run);
+    args.put("schemaName", schemaName);
+    args.put("function", "getRunResults");
+    Map<String, Object> results =
+      m_client.execute("getRunResults", args);
+    return consumeAck(results);
+    
+  }
   private Map<String, Object> consumeAck(Map<String, Object> results)
     throws EtClientException {
     if (results.get("acknowledge") == null) {
