@@ -66,16 +66,16 @@ public class EtClientServices  {
     return consumeAck(results);
   }
 
-  public Map<String, Object>
+  public HashMap<String, Object>
     getRunResults(String run, String schemaName)
     throws UnsupportedEncodingException, IOException, EtClientException {
     HashMap<String, Object> args = new HashMap<String, Object> ();
     args.put("run", run);
     args.put("schemaName", schemaName);
     args.put("function", "getRunResults");
-    Map<String, Object> results =
-      m_client.execute("getRunResults", args);
-    return consumeAck(results);
+    HashMap<String, Object> results =
+      (HashMap<String, Object>) m_client.execute("getRunResults", args);
+    return (HashMap<String, Object>) consumeAck(results).get("results");
     
   }
   private Map<String, Object> consumeAck(Map<String, Object> results)
