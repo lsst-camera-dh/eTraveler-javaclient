@@ -45,12 +45,8 @@ public class EtClient {
   
   private static final String s_prodURL = "http://lsst-camera.slac.stanford.edu/eTraveler/";
   private static final String s_devURL = "http://lsst-camera-dev.slac.stanford.edu/eTraveler/";
-  // private static final String s_devURL =
-  //  "http://lsst-camera-dev.slac.stanford.edu/eTraveler-jrb/";
 
-  private static final String s_localURL = "http://localhost:8080/eTraveler/";
-  //private static final String s_localURL =
-  //  "http://localhost:8080/eTraveler-jrb/";
+  private static final String s_localURL = "http://localhost:8084/eTraveler/";
 
   private class MyResponseHandler implements ResponseHandler< Map<String, Object > > {
     public Map<String, Object> handleResponse(final HttpResponse response) throws
@@ -61,12 +57,13 @@ public class EtClient {
       //System.out.println(status);
       if (status >= 200 && status < 305) {
         HttpEntity entity = response.getEntity();
+        String stringData = EntityUtils.toString(entity);
         if (entity == null) return null;
         //ByteArrayOutputStream out = new ByteArrayOutputStream();
         //entity.writeTo(out);
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> results =
-          mapper.readValue(EntityUtils.toString(entity), Map.class);
+          mapper.readValue(stringData, Map.class);
         return results;
       } else {
         throw new
