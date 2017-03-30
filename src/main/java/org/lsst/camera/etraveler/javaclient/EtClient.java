@@ -57,13 +57,12 @@ public class EtClient {
       //System.out.println(status);
       if (status >= 200 && status < 305) {
         HttpEntity entity = response.getEntity();
-        String stringData = EntityUtils.toString(entity);
         if (entity == null) return null;
-        //ByteArrayOutputStream out = new ByteArrayOutputStream();
-        //entity.writeTo(out);
+
+        String stringData = EntityUtils.toString(entity);
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> results =
-          mapper.readValue(stringData, Map.class);
+          (Map<String, Object>) mapper.readValue(stringData, Object.class);
         return results;
       } else {
         throw new

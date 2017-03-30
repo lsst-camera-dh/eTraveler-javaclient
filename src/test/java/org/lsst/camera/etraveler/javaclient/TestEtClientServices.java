@@ -143,7 +143,7 @@ public class TestEtClientServices {
 
     EtClientServices myService = new EtClientServices("Dev", null, prodServer);
     String run="4689D";
-    //String schname="fe55_raft_analysis";
+
     String function="getRunResults";
     System.out.println("Arguments are run=" + run + 
                        ", function=" + function);
@@ -161,6 +161,33 @@ public class TestEtClientServices {
 
   }
 
+  @Test
+  public void testGetRunSchemaResults() 
+    throws UnsupportedEncodingException, EtClientException, IOException {
+    boolean prodServer=false;
+    System.out.println("\n\nRunning testGetRunSchemaResults");
+    System.out.println("prodServer is " + prodServer);
+
+    EtClientServices myService = new EtClientServices("Dev", null, prodServer);
+    String run="4689D";
+    String schname="fe55_raft_analysis";
+    String function="getRunResults";
+    System.out.println("Arguments are run=" + run + 
+                       ", schema=" + schname +
+                       ", function=" + function);
+    try {
+      Map<String, Object> results = 
+        myService.getRunResults(run, schname);
+      TestEtClientServices.outputRun(results);
+    } catch (Exception ex) {
+      System.out.println("failed with exception " + ex.getMessage());
+      throw new EtClientException(ex.getMessage());
+    } finally {
+      myService.close();
+    }
+
+  }
+  
   private static void outputRun(Map<String, Object> results ) {
        System.out.println("Outer map has following non-instance key/value pairs");
     for (String k : results.keySet() ) {
@@ -178,9 +205,7 @@ public class TestEtClientServices {
       Map<String, Object> perStep = (Map<String, Object>) stepMap.get(name); 
       for (String schname : perStep.keySet()) {
         System.out.println("  Schema name " + schname);
-        LinkedHashMap<Integer, Object > instancesContainer =
-          (LinkedHashMap <Integer,Object >) perStep.get(schname);
-        ArrayList< Map<String, Object> > instances = (ArrayList< Map<String, Object> >) instancesContainer.get("arrayList");
+        ArrayList< Map<String, Object> > instances = (ArrayList< Map<String, Object> >) perStep.get(schname);
         System.out.println("  Instance array is of length " + instances.size() );
         System.out.println("  Instance data for this step/schema:");
         for (Object obj : instances) {

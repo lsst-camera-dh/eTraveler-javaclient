@@ -16,10 +16,10 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 // Other applications will need imports
-// import org.lsst.camera.etravler.javaclient.getHarnessed.GetHarnessedData;
-// import org.lsst.camera.etravler.javaclient.getHarnessed.GetHarnessedException;
-// import org.lsst.camera.etravler.javaclient.getHarnessed.PerSchema;
-// import org.lsst.camera.etravler.javaclient.getHarnessed.PerStep;
+// import org.lsst.camera.etraveler.javaclient.getHarnessed.GetHarnessedData;
+// import org.lsst.camera.etraveler.javaclient.getHarnessed.GetHarnessedException;
+// import org.lsst.camera.etraveler.javaclient.getHarnessed.PerSchema;
+// import org.lsst.camera.etraveler.javaclient.getHarnessed.PerStep;
 
 
 // Might move this to general-purpose utility to open connection
@@ -138,8 +138,8 @@ public class TestGetHarnessed {
 
     printJHResults(results);
   }
-
-  @Test
+  // Ignore temporarily
+  @Ignore @Test
   public void getRaftOneCCD() throws GetHarnessedException, SQLException {
 
     System.out.println("Running test getRaftOneCCD");
@@ -185,7 +185,8 @@ public class TestGetHarnessed {
     printJHResults(results);
   }
 
-  @Test
+  // Ignore temporarily
+  @Ignore @Test
   public void getRaftOneAmp() throws GetHarnessedException, SQLException {
     String tname="SR-RTM-EOT-03";
     String htype="LCA-11021_RTM";
@@ -210,7 +211,8 @@ public class TestGetHarnessed {
     printJHResults(results);
   }
 
-  @Test
+  // Ignore temporarily
+  @Ignore @Test
   public void getRaftRun()  throws GetHarnessedException, SQLException {
 
     String run="4689D";
@@ -258,8 +260,8 @@ public class TestGetHarnessed {
       getHarnessed.getRunResults("4689D", null);
     printRunResultsAll(results);
   }
-
-  @Test
+  // Ignore temporarily
+  @Ignore @Test
   public void getAllRunFiltered() throws GetHarnessedException, SQLException {
 
     String run="4689D";
@@ -276,8 +278,8 @@ public class TestGetHarnessed {
       getHarnessed.getRunResults(run, filter);
     printRunResultsAll(results);
   }
-
-  @Test
+  // Ignore temporarily
+  @Ignore@Test
   public void getRunFilepaths() throws GetHarnessedException, SQLException {
 
     System.out.println("Running test getRunFilepaths");
