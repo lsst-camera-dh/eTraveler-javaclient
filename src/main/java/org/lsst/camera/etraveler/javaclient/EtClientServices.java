@@ -66,8 +66,7 @@ public class EtClientServices  {
     return consumeAck(results);
   }
 
-  public HashMap<String, Object>
-    getRunResults(String run, String schemaName)
+  public HashMap<String, Object> getRunResults(String run, String schemaName)
     throws UnsupportedEncodingException, IOException, EtClientException {
     HashMap<String, Object> args = new HashMap<String, Object> ();
     args.put("run", run);
@@ -78,8 +77,41 @@ public class EtClientServices  {
     HashMap<String, Object> results =
       (HashMap<String, Object>) m_client.execute("getResults", args);
     return (HashMap<String, Object>) consumeAck(results).get("results");
-    
   }
+
+  public HashMap<String, Object> getRunFilepaths(String run, String stepName)
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    HashMap<String, Object> args = new HashMap<String, Object> ();
+    args.put("run", run);
+    if (stepName != null) {
+      args.put("stepName", stepName);
+    }
+    args.put("function", "getRunFilepaths");
+    HashMap<String, Object> results =
+      (HashMap<String, Object>) m_client.execute("getResults", args);
+    return (HashMap<String, Object>) consumeAck(results).get("results");
+  }
+    
+  public HashMap<String, Object>
+    getResultsJH(String travelerName, String hardwareType, String schemaName,
+                 String model, String experimentSN) 
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    HashMap<String, Object> args = new HashMap<String, Object> ();
+    args.put("travelerName", travelerName);
+    args.put("hardwareType", hardwareType);
+    args.put("schemaName", schemaName);
+    if (model != null) {
+      args.put("model", model);
+    }
+    if (experimentSN != null) {
+      args.put("experimentSN", experimentSN);
+    }
+    args.put("function", "getResultsJH");
+    HashMap<String, Object> results =
+      (HashMap<String, Object>) m_client.execute("getResults", args);
+    return (HashMap<String, Object>) consumeAck(results).get("results");
+  }
+    
   private Map<String, Object> consumeAck(Map<String, Object> results)
     throws EtClientException {
     if (results.get("acknowledge") == null) {

@@ -187,7 +187,69 @@ public class TestEtClientServices {
     }
 
   }
-  
+
+  @Test
+  public void testGetResultsJH() 
+    throws UnsupportedEncodingException, EtClientException, IOException {
+    boolean prodServer=false;
+    System.out.println("\n\nRunning testGetResultsJH");
+    System.out.println("prodServer is " + prodServer);
+
+    EtClientServices myService = new EtClientServices("Prod", null, prodServer);
+    String travelerName="SR-EOT-1";
+    String hardwareType="ITL-CCD";
+    String schemaName="read_noise";
+    String experimentSN="ITL-3800C-021";
+
+    String function="getResultsJH";
+    System.out.println("Arguments are travelerName=" + travelerName +
+                       " hardwareType=" + hardwareType +
+                       " schemaName=" + schemaName +
+                       " experimentSN=" + experimentSN + 
+                       ", function=" + function);
+    try {
+      Map<String, Object> results = 
+        myService.getResultsJH(travelerName, hardwareType, schemaName,
+                               null, experimentSN);
+      for (String cmp : results.keySet() ) {
+        HashMap<String, Object> cmpResults =
+          (HashMap<String, Object>) results.get(cmp);
+        System.out.println("Results for " + cmp);
+        TestEtClientServices.outputRun(cmpResults);
+      }
+    } catch (Exception ex) {
+      System.out.println("failed with exception " + ex.getMessage());
+      throw new EtClientException(ex.getMessage());
+    } finally {
+      myService.close();
+    }
+  }
+
+  @Test
+  public void TestGetRunFilepaths()
+    throws UnsupportedEncodingException, EtClientException, IOException {
+    boolean prodServer=false;
+
+    System.out.println("\n\nRunning testGetRunFilepaths");
+    System.out.println("prodServer is " + prodServer);
+
+    EtClientServices myService = new EtClientServices("Prod", null, prodServer);
+
+    String run="72";
+    String function="getRunFilepaths";
+    try {
+      Map<String, Object> results = 
+        myService.getRunFilepaths(run, null);
+
+      TestEtClientServices.outputRunFiles(results);
+    } catch (Exception ex) {
+      System.out.println("failed with exception " + ex.getMessage());
+      throw new EtClientException(ex.getMessage());
+    } finally {
+      myService.close();
+    }
+
+  }
   private static void outputRun(Map<String, Object> results ) {
        System.out.println("Outer map has following non-instance key/value pairs");
     for (String k : results.keySet() ) {
@@ -214,6 +276,21 @@ public class TestEtClientServices {
         }
         System.out.println(" ");
       }
+    }
+  }
+
+  private static void outputRunFiles(Map<String, Object> results) {
+    for (String name : results.keySet() ) {
+      System.out.println("Step name " + name);
+      ArrayList<Map<String, Object> > instances =
+        (ArrayList<Map<String, Object> >) results.get(name);
+      System.out.println("  Instance array is of length " + instances.size() );
+      System.out.println("  Filepath data for this step:");
+      for (Object obj : instances) {
+        Map <String, Object> m = (Map <String, Object>) obj;
+        System.out.println(m);
+      }
+      System.out.println(" ");
     }
   }
 
