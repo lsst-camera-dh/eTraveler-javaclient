@@ -111,6 +111,27 @@ public class EtClientServices  {
       (HashMap<String, Object>) m_client.execute("getResults", args);
     return (HashMap<String, Object>) consumeAck(results).get("results");
   }
+
+  public HashMap<String, Object>
+    getFilepathsJH(String travelerName, String hardwareType, String stepName,
+                 String model, String experimentSN) 
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    HashMap<String, Object> args = new HashMap<String, Object> ();
+    args.put("travelerName", travelerName);
+    args.put("hardwareType", hardwareType);
+    args.put("stepName", stepName);
+    if (model != null) {
+      args.put("model", model);
+    }
+    if (experimentSN != null) {
+      args.put("experimentSN", experimentSN);
+    }
+    args.put("function", "getFilepathsJH");
+    HashMap<String, Object> results =
+      (HashMap<String, Object>) m_client.execute("getResults", args);
+    return (HashMap<String, Object>) consumeAck(results).get("results");
+  }
+
     
   private Map<String, Object> consumeAck(Map<String, Object> results)
     throws EtClientException {
