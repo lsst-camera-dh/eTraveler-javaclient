@@ -10,13 +10,13 @@ package org.lsst.camera.etraveler.javaclient;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 //import org.lsst.camera.etraveler.javaclient.getHarnessed.GetHarnessedData;
-//import org.lsst.camera.etraveler.javaclient.getHarnessed.GetHarnessedException;
 
-//import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 class EtClientDataServer {
@@ -24,11 +24,14 @@ class EtClientDataServer {
   public static final int FRONTEND_DEV=2;
   public static final int FRONTEND_LOCAL=3;
 
+  // Only one experiment per data server
   private String m_experiment="LSST-CAMERA";
   private int m_frontend=FRONTEND_PROD;
+
+  // Map datasource mode to services to fetch data for that mode
   private HashMap<String, EtClientServices> m_clientMap = null;
   
-  // The String key is datasource mode; int key is run number
+  // The String key is datasource mode (Dev, Prod, etc.); int key is run number
   // Innermost Object is meant to represent data from one run
   private HashMap<String, HashMap<Integer, HashMap<String, Object> > > m_allDataMap=null;
   EtClientDataServer(String experiment) {
@@ -90,7 +93,7 @@ class EtClientDataServer {
     
     HashMap<String, Object> savedResults = null;
     if (!allData.containsKey((Integer) run)) {
-      savedResults = client.getRunResults(Integer.toString(run), null);
+      savedResults = client.getRunResults(Integer.toString(run), null, null);
       allData.put(run, savedResults);
     } else {
       savedResults = allData.get(run);
@@ -101,6 +104,34 @@ class EtClientDataServer {
     // if itemFilter, prune
     return results;
     
+  }
+  private static HashMap<String, Object>
+    pruneRun(HashMap<String, Object> results,
+             ImmutablePair<String, Object> filter) {
+    for (Object oStep: results.values() ) {    // for each step
+      HashMap<String, Object> step = (HashMap<String, Object>) oStep;
+      for (Object oSchema: step.values() ) {   //  for each schema
+        ArrayList<HashMap<String, Object> > schema =
+          (ArrayList<HashMap<String, Object> > ) oSchema;
+        pruneSchema(schema, filter);
+      }
+    }
+    return results;
+  }
+  private static void pruneSchema(ArrayList<HashMap<String,Object> > schemaData,
+                                  ImmutablePair<String, Object> filter) {
+    String key = filter.getLeft();
+    Object val = filter.getRight();
+
+    HashMap<String, Object> instance0 = schemaData.get(0);
+    if (!(instance0.containsKey(key))) return;
+
+    for (int i=(schemaData.size() - 1); i > 0; i--) {
+      if (!(schemaData.get(i).get(key).equals(val)) ) {
+        schemaData.remove(i);
+      }
+    }
+
   }
 }
     

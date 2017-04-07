@@ -25,9 +25,9 @@ public class EtClientServices  {
       m_client.useLocalServer();
     }
   }
-    
-
-  public Map<String, Object> getRunInfo(int activityId) throws UnsupportedEncodingException, IOException, EtClientException {
+   
+  public Map<String, Object> getRunInfo(int activityId)
+    throws UnsupportedEncodingException, IOException, EtClientException {
     HashMap<String, Object> args = new HashMap<String, Object> ();
     args.put("activityId", activityId);
     Map<String, Object> results = m_client.execute("getRunInfo", args);
@@ -66,12 +66,16 @@ public class EtClientServices  {
     return consumeAck(results);
   }
 
-  public HashMap<String, Object> getRunResults(String run, String schemaName)
+  public HashMap<String, Object> getRunResults(String run, String stepName,
+                                               String schemaName)
     throws UnsupportedEncodingException, IOException, EtClientException {
     HashMap<String, Object> args = new HashMap<String, Object> ();
     args.put("run", run);
     if (schemaName != null) {
       args.put("schemaName", schemaName);
+    }
+    if (stepName != null) {
+      args.put("stepName", stepName);
     }
     args.put("function", "getRunResults");
     HashMap<String, Object> results =
@@ -93,13 +97,16 @@ public class EtClientServices  {
   }
     
   public HashMap<String, Object>
-    getResultsJH(String travelerName, String hardwareType, String schemaName,
-                 String model, String experimentSN) 
+    getResultsJH(String travelerName, String hardwareType, String stepName,
+                 String schemaName, String model, String experimentSN) 
     throws UnsupportedEncodingException, IOException, EtClientException {
     HashMap<String, Object> args = new HashMap<String, Object> ();
     args.put("travelerName", travelerName);
     args.put("hardwareType", hardwareType);
-    args.put("schemaName", schemaName);
+    args.put("stepName", stepName);
+    if (stepName != null) {
+      args.put("schemaName", schemaName);
+    }
     if (model != null) {
       args.put("model", model);
     }

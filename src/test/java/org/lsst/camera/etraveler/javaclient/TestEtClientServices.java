@@ -137,20 +137,22 @@ public class TestEtClientServices {
   @Test
   public void testGetRunResults() 
     throws UnsupportedEncodingException, EtClientException, IOException {
-    boolean prodServer=false;
     System.out.println("\n\nRunning testGetRunResults");
+    boolean prodServer=false;
     System.out.println("prodServer is " + prodServer);
+    boolean localServer=true;
+    System.out.println("localServer is " + localServer);
 
-    EtClientServices myService = new EtClientServices("Dev", null, prodServer);
+    EtClientServices myService = new EtClientServices("Dev", null, prodServer, localServer);
     String run="4689D";
 
     String function="getRunResults";
     System.out.println("Arguments are run=" + run + 
                        ", function=" + function);
-    // ", schema=" + schname +
+    // ", schema=" + schname +", step=" + stepname +
     try {
       Map<String, Object> results = 
-        myService.getRunResults(run, null);  // , schname );
+        myService.getRunResults(run, null, null);  // , stepname, schname );
       TestEtClientServices.outputRun(results);
     } catch (Exception ex) {
       System.out.println("failed with exception " + ex.getMessage());
@@ -167,17 +169,21 @@ public class TestEtClientServices {
     boolean prodServer=false;
     System.out.println("\n\nRunning testGetRunSchemaResults");
     System.out.println("prodServer is " + prodServer);
+    boolean localServer=true;
+    System.out.println("localServer is " + localServer);
 
-    EtClientServices myService = new EtClientServices("Dev", null, prodServer);
+    EtClientServices myService =
+      new EtClientServices("Dev", null, prodServer, localServer);
     String run="4689D";
     String schname="fe55_raft_analysis";
     String function="getRunResults";
     System.out.println("Arguments are run=" + run + 
                        ", schema=" + schname +
+                       ", step=null" + 
                        ", function=" + function);
     try {
       Map<String, Object> results = 
-        myService.getRunResults(run, schname);
+        myService.getRunResults(run, null, schname);
       TestEtClientServices.outputRun(results);
     } catch (Exception ex) {
       System.out.println("failed with exception " + ex.getMessage());
@@ -194,23 +200,27 @@ public class TestEtClientServices {
     boolean prodServer=false;
     System.out.println("\n\nRunning testGetResultsJH");
     System.out.println("prodServer is " + prodServer);
+    boolean localServer=true;
+    System.out.println("localServer is " + localServer);
 
-    EtClientServices myService = new EtClientServices("Prod", null, prodServer);
+    EtClientServices myService =
+      new EtClientServices("Prod", null, prodServer, localServer);
     String travelerName="SR-EOT-1";
     String hardwareType="ITL-CCD";
-    String schemaName="read_noise";
+    String stepName="read_noise";
     String experimentSN="ITL-3800C-021";
 
     String function="getResultsJH";
     System.out.println("Arguments are travelerName=" + travelerName +
                        " hardwareType=" + hardwareType +
-                       " schemaName=" + schemaName +
+                       " stepName=" + stepName +
+                       " schemaName=null" +
                        " experimentSN=" + experimentSN + 
                        ", function=" + function);
     try {
       Map<String, Object> results = 
-        myService.getResultsJH(travelerName, hardwareType, schemaName,
-                               null, experimentSN);
+        myService.getResultsJH(travelerName, hardwareType, stepName,
+                               null, null, experimentSN);
       for (String cmp : results.keySet() ) {
         HashMap<String, Object> cmpResults =
           (HashMap<String, Object>) results.get(cmp);
@@ -226,14 +236,59 @@ public class TestEtClientServices {
   }
 
   @Test
+  public void testGetResultsJH_schema() 
+    throws UnsupportedEncodingException, EtClientException, IOException {
+    boolean prodServer=false;
+    System.out.println("\n\nRunning testGetResultsJH_schema");
+    System.out.println("prodServer is " + prodServer);
+    boolean localServer=true;
+    System.out.println("localServer is " + localServer);
+
+    EtClientServices myService =
+      new EtClientServices("Prod", null, prodServer, localServer);
+    String travelerName="SR-EOT-1";
+    String hardwareType="ITL-CCD";
+    String stepName="read_noise";
+    String schemaName="package_versions";
+    String experimentSN="ITL-3800C-021";
+
+    String function="getResultsJH";
+    System.out.println("Arguments are travelerName=" + travelerName +
+                       " hardwareType=" + hardwareType +
+                       " stepName=" + stepName +
+                       " schemaName=" + schemaName +
+                       " experimentSN=" + experimentSN + 
+                       ", function=" + function);
+    try {
+      Map<String, Object> results = 
+        myService.getResultsJH(travelerName, hardwareType, stepName,
+                               schemaName, null, experimentSN);
+      for (String cmp : results.keySet() ) {
+        HashMap<String, Object> cmpResults =
+          (HashMap<String, Object>) results.get(cmp);
+        System.out.println("Results for " + cmp);
+        TestEtClientServices.outputRun(cmpResults);
+      }
+    } catch (Exception ex) {
+      System.out.println("failed with exception " + ex.getMessage());
+      throw new EtClientException(ex.getMessage());
+    } finally {
+      myService.close();
+    }
+  }
+  
+  @Test
   public void TestGetRunFilepaths()
     throws UnsupportedEncodingException, EtClientException, IOException {
     boolean prodServer=false;
 
     System.out.println("\n\nRunning testGetRunFilepaths");
     System.out.println("prodServer is " + prodServer);
+    boolean localServer=true;
+    System.out.println("localServer is " + localServer);
 
-    EtClientServices myService = new EtClientServices("Prod", null, prodServer);
+    EtClientServices myService =
+      new EtClientServices("Prod", null, prodServer, localServer);
 
     String run="72";
     String function="getRunFilepaths";
@@ -256,8 +311,12 @@ public class TestEtClientServices {
     boolean prodServer=false;
     System.out.println("\n\nRunning testGetFilepathsJH");
     System.out.println("prodServer is " + prodServer);
+    boolean localServer=true;
+    System.out.println("localServer is " + localServer);
 
-    EtClientServices myService = new EtClientServices("Prod", null, prodServer);
+
+    EtClientServices myService =
+      new EtClientServices("Prod", null, prodServer, localServer);
     String travelerName="SR-EOT-1";
     String hardwareType="ITL-CCD";
     String stepName="preflight_acq";
