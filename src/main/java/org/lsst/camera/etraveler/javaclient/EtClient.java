@@ -38,12 +38,15 @@ import org.apache.http.util.EntityUtils;
  */
 public class EtClient {
   private String m_db="Prod";
-  private String m_exp="LSST_CAMERA";
+  private String m_exp="LSST-CAMERA";
   private boolean m_prodServer=true;
+  private boolean m_localServer=false;
   private CloseableHttpClient m_httpclient = null;
   
   private static final String s_prodURL = "http://lsst-camera.slac.stanford.edu/eTraveler/";
   private static final String s_devURL = "http://lsst-camera-dev.slac.stanford.edu/eTraveler/";
+
+  private static final String s_localURL = "http://localhost:8084/eTraveler/";
 
   private class MyResponseHandler implements ResponseHandler< Map<String, Object > > {
     public Map<String, Object> handleResponse(final HttpResponse response) throws
@@ -55,11 +58,11 @@ public class EtClient {
       if (status >= 200 && status < 305) {
         HttpEntity entity = response.getEntity();
         if (entity == null) return null;
-        //ByteArrayOutputStream out = new ByteArrayOutputStream();
-        //entity.writeTo(out);
+
+        String stringData = EntityUtils.toString(entity);
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> results =
-          mapper.readValue(EntityUtils.toString(entity), Map.class);
+          (Map<String, Object>) mapper.readValue(stringData, Object.class);
         return results;
       } else {
         throw new
@@ -78,6 +81,10 @@ public class EtClient {
   public void setProdServer(boolean isProd) {
     m_prodServer = isProd;
   }
+  public void useLocalServer() {
+    m_prodServer = false;
+    m_localServer = true;
+  }
   private void createClient() {
     m_httpclient =
       HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
@@ -86,6 +93,7 @@ public class EtClient {
   private String formURL(String command)  {
     String url = s_prodURL;
     if (!m_prodServer) url = s_devURL;
+    if (m_localServer) url = s_localURL;
     url += (m_db + "/Results/" + command);
     return url;
   }
@@ -95,7 +103,8 @@ public class EtClient {
   throws JsonProcessingException, UnsupportedEncodingException,
          EtClientException, IOException {
     if (m_httpclient == null) createClient();
-    
+
+    System.out.println("Using URL " + formURL(command));
     HttpPost httppost = new HttpPost(formURL(command));
     String payload = new ObjectMapper().writeValueAsString(args);
     List<NameValuePair> params = new ArrayList<NameValuePair>(1);
