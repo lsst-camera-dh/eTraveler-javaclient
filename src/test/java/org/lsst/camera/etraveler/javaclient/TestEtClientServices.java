@@ -99,7 +99,7 @@ public class TestEtClientServices {
   public void testGetHardwareHierarchy() throws UnsupportedEncodingException,
                                                 EtClientException, IOException {
     boolean prodServer=false;
-    boolean localServer=true;
+    boolean localServer=false;
     System.out.println("Running testGetHardwareHierarchy");
 
     EtClientServices myService =
@@ -140,7 +140,7 @@ public class TestEtClientServices {
     System.out.println("\n\nRunning testGetRunResults");
     boolean prodServer=false;
     System.out.println("prodServer is " + prodServer);
-    boolean localServer=true;
+    boolean localServer=false;
     System.out.println("localServer is " + localServer);
 
     EtClientServices myService = new EtClientServices("Dev", null, prodServer, localServer);
@@ -169,7 +169,7 @@ public class TestEtClientServices {
     boolean prodServer=false;
     System.out.println("\n\nRunning testGetRunSchemaResults");
     System.out.println("prodServer is " + prodServer);
-    boolean localServer=true;
+    boolean localServer=false;
     System.out.println("localServer is " + localServer);
 
     EtClientServices myService =
@@ -200,7 +200,7 @@ public class TestEtClientServices {
     boolean prodServer=false;
     System.out.println("\n\nRunning testGetResultsJH");
     System.out.println("prodServer is " + prodServer);
-    boolean localServer=true;
+    boolean localServer=false;
     System.out.println("localServer is " + localServer);
 
     EtClientServices myService =
@@ -241,7 +241,7 @@ public class TestEtClientServices {
     boolean prodServer=false;
     System.out.println("\n\nRunning testGetResultsJH_schema");
     System.out.println("prodServer is " + prodServer);
-    boolean localServer=true;
+    boolean localServer=false;
     System.out.println("localServer is " + localServer);
 
     EtClientServices myService =
@@ -284,7 +284,7 @@ public class TestEtClientServices {
 
     System.out.println("\n\nRunning testGetRunFilepaths");
     System.out.println("prodServer is " + prodServer);
-    boolean localServer=true;
+    boolean localServer=false;
     System.out.println("localServer is " + localServer);
 
     EtClientServices myService =
@@ -311,7 +311,7 @@ public class TestEtClientServices {
     boolean prodServer=false;
     System.out.println("\n\nRunning testGetFilepathsJH");
     System.out.println("prodServer is " + prodServer);
-    boolean localServer=true;
+    boolean localServer=false;
     System.out.println("localServer is " + localServer);
 
 
