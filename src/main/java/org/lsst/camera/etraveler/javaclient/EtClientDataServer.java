@@ -11,6 +11,7 @@ package org.lsst.camera.etraveler.javaclient;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.Set;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
@@ -31,7 +32,7 @@ class EtClientDataServer {
   // Map datasource mode to services to fetch data for that mode
   private HashMap<String, EtClientServices> m_clientMap = null;
   
-  // The String key is datasource mode (Dev, Prod, etc.); int key is run number
+  // The String key is dataSourceMode (Dev, Prod, etc.); int key is run number
   // Innermost Object is meant to represent data from one run
   private HashMap<String, HashMap<Integer, HashMap<String, Object> > > m_allDataMap=null;
   EtClientDataServer(String experiment) {
@@ -44,30 +45,23 @@ class EtClientDataServer {
     m_experiment = experiment;
   }
 
+  
 
-  Object fetchRun(int run)
+  public Object fetchRun(String run)
     throws UnsupportedEncodingException, IOException, EtClientException {
     return fetchRun(run, "Prod");
   }
-  Object fetchRun(int run, String datasource)
+  public Object fetchRun(String run, String dataSourceMode)
     throws UnsupportedEncodingException, IOException, EtClientException {
-    return fetchRun(run, datasource, null);
-  }
-  Object fetchRun(int run, Pair itemFilter)
-    throws UnsupportedEncodingException, IOException, EtClientException {
-    return fetchRun(run, "Prod", itemFilter);
-  }
-      
-  Object fetchRun(int run, String datasource, Pair itemFilter)
-  throws UnsupportedEncodingException, IOException, EtClientException {
     EtClientServices client = null;
     HashMap<Integer, HashMap<String, Object> > allData=null;
+    Integer runInt = formRunInt(run);
     if (m_clientMap == null) {
       m_clientMap = new HashMap<String, EtClientServices>();
       m_allDataMap = new
         HashMap<String, HashMap<Integer, HashMap<String, Object> > >();
     }
-    if (!m_clientMap.containsKey(datasource)) {
+    if (!m_clientMap.containsKey(dataSourceMode)) {
       boolean prodServer=true;
       boolean localServer=false;
       switch (m_frontend) {
@@ -80,58 +74,134 @@ class EtClientDataServer {
         localServer=true;
         break;
       }
-      client = new EtClientServices(datasource, m_experiment, prodServer,
+      client = new EtClientServices(dataSourceMode, m_experiment, prodServer,
                                     localServer);
-      m_clientMap.put(datasource, client);
+      m_clientMap.put(dataSourceMode, client);
       allData = new HashMap<Integer, HashMap<String, Object>>();
-      m_allDataMap.put(datasource, allData);
+      m_allDataMap.put(dataSourceMode, allData);
     } else {
-      client = m_clientMap.get(datasource);
-      allData = m_allDataMap.get(datasource);
+      client = m_clientMap.get(dataSourceMode);
+      allData = m_allDataMap.get(dataSourceMode);
     }
 
     
     HashMap<String, Object> savedResults = null;
-    if (!allData.containsKey((Integer) run)) {
-      savedResults = client.getRunResults(Integer.toString(run), null, null);
-      allData.put(run, savedResults);
+    if (!allData.containsKey(runInt)) {
+      savedResults = client.getRunResults(Integer.toString(runInt), null, null);
+      allData.put(runInt, savedResults);
     } else {
-      savedResults = allData.get(run);
+      savedResults = allData.get(runInt);
     }
     HashMap<String, Object> results = (HashMap<String, Object>)
       savedResults.clone();
 
+    return results;
+  }
+  public Object fetchRun(String run,
+                         ArrayList<ImmutablePair<String, Object>> itemFilters)
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    return fetchRun(run, "Prod", null, null, itemFilters);
+  }
+      
+  public Object fetchRun(String run, String dataSourceMode, String step,
+                         String schema,
+                         ArrayList<ImmutablePair<String, Object> > itemFilters)
+  throws UnsupportedEncodingException, IOException, EtClientException {
+
+    HashMap<String, Object> results =
+      (HashMap<String, Object>) fetchRun(run, dataSourceMode);
+
+    // if step eliminate other steps
+    if (step != null) removeSteps(results.get("steps"), step);
+
+    // if schema eliiminate other schemas
+    if (schema != null) removeSchemas(results.get("steps"), schema);
+    
     // if itemFilter, prune
+    if (itemFilters != null) {
+      return pruneRun(results, itemFilters);
+    }
     return results;
     
   }
   private static HashMap<String, Object>
     pruneRun(HashMap<String, Object> results,
-             ImmutablePair<String, Object> filter) {
+             ArrayList<ImmutablePair<String, Object>> filters) {
+    if (filters == null) return null;
+    if (filters.size() == 0 ) return null;
     for (Object oStep: results.values() ) {    // for each step
       HashMap<String, Object> step = (HashMap<String, Object>) oStep;
       for (Object oSchema: step.values() ) {   //  for each schema
         ArrayList<HashMap<String, Object> > schema =
           (ArrayList<HashMap<String, Object> > ) oSchema;
-        pruneSchema(schema, filter);
+        pruneSchema(schema, filters);
       }
+      
     }
     return results;
   }
-  private static void pruneSchema(ArrayList<HashMap<String,Object> > schemaData,
-                                  ImmutablePair<String, Object> filter) {
-    String key = filter.getLeft();
-    Object val = filter.getRight();
 
-    HashMap<String, Object> instance0 = schemaData.get(0);
-    if (!(instance0.containsKey(key))) return;
+  private static void removeSteps(Object stepsObj, String stepToKeep) {
+    HashMap<String, Object> steps = (HashMap<String, Object>) stepsObj;
 
-    for (int i=(schemaData.size() - 1); i > 0; i--) {
-      if (!(schemaData.get(i).get(key).equals(val)) ) {
-        schemaData.remove(i);
+    Set<String> keys = steps.keySet();
+    for (String stepName : keys ) {
+      if (!stepName.equals(stepToKeep)) steps.remove(stepName);
+    }
+  }
+
+  private static void removeSchemas(Object stepsObj, String schemaToKeep) {
+    HashMap<String, Object> steps = (HashMap<String, Object>) stepsObj;
+    Set<String> stepKeys = steps.keySet();
+    for (String stepName : stepKeys) {
+      HashMap<String, Object> schemas =
+        (HashMap<String, Object>) steps.get(stepName);
+      Set<String> schemaKeys = schemas.keySet();
+      if (!schemaKeys.contains(schemaToKeep)) { // step is of no interest
+        steps.remove(stepName);
+      } else {
+        for (String schemaName : schemaKeys) {
+          if (!schemaName.equals(schemaToKeep)) schemas.remove(schemaName);
+        }
       }
     }
+  }
 
+  private static void
+    pruneSchema(ArrayList<HashMap<String,Object> > schemaData,
+                ArrayList<ImmutablePair<String, Object> >filters) {
+
+    for (ImmutablePair<String, Object> filter : filters) {
+      String key = filter.getLeft();
+      Object val = filter.getRight();
+
+      HashMap<String, Object> instance0 = schemaData.get(0);
+      if (!(instance0.containsKey(key))) continue;
+
+      for (int i=(schemaData.size() - 1); i > 0; i--) {
+        if (!(schemaData.get(i).get(key).equals(val)) ) {
+          schemaData.remove(i);
+        }
+      }
+    }
+  }
+  private static int formRunInt(String st) throws EtClientException {
+    int theInt;
+    try {
+      theInt = Integer.parseInt(st);
+      } catch (NumberFormatException e) {
+      try {
+        theInt = Integer.parseInt(st.substring(0, st.length() -1));
+      }  catch (NumberFormatException e2) {
+        throw new EtClientException("Supplied run value " + st +
+                                        " is not valid");
+      }
+      if (theInt < 1) {
+        throw new EtClientException("Supplied run value " + st +
+                                    " is not valid");
+      }
+    }
+    return theInt;
   }
 }
     
