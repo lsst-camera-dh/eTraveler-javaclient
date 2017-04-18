@@ -100,8 +100,6 @@ class EtClientDataServer {
     } else {
       savedResults = allData.get(runInt);
     }
-    // HashMap<String, Object> results = (HashMap<String, Object>)
-    //  savedResults.clone();
     HashMap<String, Object> results = m_cloner.deepClone(savedResults);
 
     return results;
@@ -128,17 +126,19 @@ class EtClientDataServer {
     
     // if itemFilter, prune
     if (itemFilters != null) {
-      return pruneRun(results, itemFilters);
+      pruneRun((HashMap<String, Object>) results.get("steps"),
+               itemFilters);
     }
     return results;
     
   }
-  private static HashMap<String, Object>
-    pruneRun(HashMap<String, Object> results,
+  //private static HashMap<String, Object>
+  private static void
+    pruneRun(HashMap<String, Object> steps,
              ArrayList<ImmutablePair<String, Object>> filters) {
-    if (filters == null) return null;
-    if (filters.size() == 0 ) return null;
-    for (Object oStep: results.values() ) {    // for each step
+    if (filters == null) return;
+    if (filters.size() == 0 ) return;
+    for (Object oStep: steps.values() ) {    // for each step
       HashMap<String, Object> step = (HashMap<String, Object>) oStep;
       for (Object oSchema: step.values() ) {   //  for each schema
         ArrayList<HashMap<String, Object> > schema =
@@ -147,7 +147,7 @@ class EtClientDataServer {
       }
       
     }
-    return results;
+    //return results;
   }
 
   private static void removeSteps(Object stepsObj, String stepToKeep) {

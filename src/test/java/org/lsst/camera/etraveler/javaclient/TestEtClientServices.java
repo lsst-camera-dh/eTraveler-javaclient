@@ -21,6 +21,7 @@ import java.io.InputStream;
 
 
 import java.io.UnsupportedEncodingException;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 
 public class TestEtClientServices {
 
@@ -363,10 +364,13 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     EtClientDataServer dataServer = 
       new EtClientDataServer("LSST-CAMERA", EtClientDataServer.FRONTEND_DEV);
     
+    
     HashMap<String, Object> results = null;
+    
     System.out.println("\nAll of 4689D");
     results = (HashMap<String, Object>) dataServer.fetchRun("4689D", "Dev");
     outputRun(results);      
+    
     
     System.out.println("\nKeep only step fe55_raft_acq");
     results = (HashMap<String, Object>) dataServer.fetchRun("4689D", "Dev", 
@@ -380,6 +384,27 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     results = (HashMap<String, Object>) dataServer.fetchRun("4689D", "Dev", 
       "fe55_raft_acq", "package_versions", null);
     outputRun(results); 
+
+    ArrayList<ImmutablePair <String, Object>> itemFilters = 
+      new ArrayList<ImmutablePair <String, Object>>();
+    ImmutablePair<String, Object> amp = new ImmutablePair("amp", 3);
+    itemFilters.add(amp);
+    System.out.println("\n Exercise ItemFilter: amp=3, step=fe55_raft_analysis");
+    results = (HashMap<String, Object>) dataServer.fetchRun("4689D", "Dev",
+      "fe55_raft_analysis", null, itemFilters);
+    outputRun(results);
+
+    ImmutablePair<String, Object> slot = new ImmutablePair("slot", "S20");
+    itemFilters.add(slot);
+    System.out.println("\n Exercise ItemFilter: amp=3, slot=S20, step=fe55_raft_analysis");
+    results = (HashMap<String, Object>) dataServer.fetchRun("4689D", "Dev",
+      "fe55_raft_analysis", null, itemFilters);
+    outputRun(results);
+    
+    System.out.println("\nAll of 4689D again, to make sure it's still there");
+    results = (HashMap<String, Object>) dataServer.fetchRun("4689D", "Dev");
+    outputRun(results);      
+    
   }
  
   private static void outputRun(Map<String, Object> results ) {
