@@ -134,7 +134,9 @@ public class TestEtClientServices {
       myService.close();
     }
   }
-  @Test
+  
+  // Temporarily ignore
+  @Ignore @Test
   public void testGetRunResults() 
     throws UnsupportedEncodingException, EtClientException, IOException {
     System.out.println("\n\nRunning testGetRunResults");
@@ -163,7 +165,8 @@ public class TestEtClientServices {
 
   }
 
-  @Test
+  // Temporarily ignore
+  @Ignore @Test
   public void testGetRunSchemaResults() 
     throws UnsupportedEncodingException, EtClientException, IOException {
     boolean prodServer=false;
@@ -194,7 +197,8 @@ public class TestEtClientServices {
 
   }
 
-  @Test
+  // Temporarily ignore
+  @Ignore @Test
   public void testGetResultsJH() 
     throws UnsupportedEncodingException, EtClientException, IOException {
     boolean prodServer=false;
@@ -235,7 +239,8 @@ public class TestEtClientServices {
     }
   }
 
-  @Test
+  // Temporarily ignore
+  @Ignore @Test
   public void testGetResultsJH_schema() 
     throws UnsupportedEncodingException, EtClientException, IOException {
     boolean prodServer=false;
@@ -277,7 +282,8 @@ public class TestEtClientServices {
     }
   }
   
-  @Test
+  // Temporarily ignore
+  @Ignore @Test
   public void TestGetRunFilepaths()
     throws UnsupportedEncodingException, EtClientException, IOException {
     boolean prodServer=false;
@@ -305,9 +311,10 @@ public class TestEtClientServices {
     }
   }
 
-  @Test
+  // Temporarily ignore
+  @Ignore @Test
   public void testGetFilepathsJH() 
-    throws UnsupportedEncodingException, EtClientException, IOException {
+throws UnsupportedEncodingException, EtClientException, IOException {
     boolean prodServer=false;
     System.out.println("\n\nRunning testGetFilepathsJH");
     System.out.println("prodServer is " + prodServer);
@@ -349,7 +356,32 @@ public class TestEtClientServices {
     }
   }
 
-  
+  @Test
+  public void testDataServer() 
+  throws UnsupportedEncodingException, EtClientException, IOException {
+    System.out.println("\n\nRunning testDataServer");
+    EtClientDataServer dataServer = 
+      new EtClientDataServer("LSST-CAMERA", EtClientDataServer.FRONTEND_DEV);
+    
+    HashMap<String, Object> results = null;
+    System.out.println("\nAll of 4689D");
+    results = (HashMap<String, Object>) dataServer.fetchRun("4689D", "Dev");
+    outputRun(results);      
+    
+    System.out.println("\nKeep only step fe55_raft_acq");
+    results = (HashMap<String, Object>) dataServer.fetchRun("4689D", "Dev", 
+      "fe55_raft_acq", null, null);
+    outputRun(results); 
+    System.out.println("\nKeep only schema package_versions");
+    results = (HashMap<String, Object>) dataServer.fetchRun("4689D", "Dev", 
+      null, "package_versions", null);
+      outputRun(results);
+    System.out.println("\nKeep only step fe55_raft_acq, schema package_versions");
+    results = (HashMap<String, Object>) dataServer.fetchRun("4689D", "Dev", 
+      "fe55_raft_acq", "package_versions", null);
+    outputRun(results); 
+  }
+ 
   private static void outputRun(Map<String, Object> results ) {
        System.out.println("Outer map has following non-instance key/value pairs");
     for (String k : results.keySet() ) {

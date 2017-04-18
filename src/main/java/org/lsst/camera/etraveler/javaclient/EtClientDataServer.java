@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.HashSet;
+import com.rits.cloning.Cloner;
 
 //import org.lsst.camera.etraveler.javaclient.getHarnessed.GetHarnessedData;
 
@@ -28,6 +30,7 @@ class EtClientDataServer {
   // Only one experiment per data server
   private String m_experiment="LSST-CAMERA";
   private int m_frontend=FRONTEND_PROD;
+  private Cloner m_cloner=null;
 
   // Map datasource mode to services to fetch data for that mode
   private HashMap<String, EtClientServices> m_clientMap = null;
@@ -61,6 +64,11 @@ class EtClientDataServer {
       m_allDataMap = new
         HashMap<String, HashMap<Integer, HashMap<String, Object> > >();
     }
+    if (m_cloner == null) {
+      m_cloner = new Cloner();
+
+      // m_cloner.setDumpClonedClasses(true);   // Temporary!!
+    }
     if (!m_clientMap.containsKey(dataSourceMode)) {
       boolean prodServer=true;
       boolean localServer=false;
@@ -92,8 +100,9 @@ class EtClientDataServer {
     } else {
       savedResults = allData.get(runInt);
     }
-    HashMap<String, Object> results = (HashMap<String, Object>)
-      savedResults.clone();
+    // HashMap<String, Object> results = (HashMap<String, Object>)
+    //  savedResults.clone();
+    HashMap<String, Object> results = m_cloner.deepClone(savedResults);
 
     return results;
   }
@@ -144,7 +153,7 @@ class EtClientDataServer {
   private static void removeSteps(Object stepsObj, String stepToKeep) {
     HashMap<String, Object> steps = (HashMap<String, Object>) stepsObj;
 
-    Set<String> keys = steps.keySet();
+    Set<String> keys = new HashSet<String>((steps.keySet()));
     for (String stepName : keys ) {
       if (!stepName.equals(stepToKeep)) steps.remove(stepName);
     }
@@ -152,11 +161,11 @@ class EtClientDataServer {
 
   private static void removeSchemas(Object stepsObj, String schemaToKeep) {
     HashMap<String, Object> steps = (HashMap<String, Object>) stepsObj;
-    Set<String> stepKeys = steps.keySet();
+    Set<String> stepKeys = new HashSet<String>(steps.keySet());
     for (String stepName : stepKeys) {
       HashMap<String, Object> schemas =
         (HashMap<String, Object>) steps.get(stepName);
-      Set<String> schemaKeys = schemas.keySet();
+      Set<String> schemaKeys = new HashSet<String>(schemas.keySet());
       if (!schemaKeys.contains(schemaToKeep)) { // step is of no interest
         steps.remove(stepName);
       } else {
