@@ -41,12 +41,13 @@ public class EtClient {
   private String m_exp="LSST-CAMERA";
   private boolean m_prodServer=true;
   private boolean m_localServer=false;
+  private String m_appSuffix="";
   private CloseableHttpClient m_httpclient = null;
   
-  private static final String s_prodURL = "http://lsst-camera.slac.stanford.edu/eTraveler/";
-  private static final String s_devURL = "http://lsst-camera-dev.slac.stanford.edu/eTraveler/";
+  private static final String s_prodURL = "http://lsst-camera.slac.stanford.edu/eTraveler";
+  private static final String s_devURL = "http://lsst-camera-dev.slac.stanford.edu/eTraveler";
 
-  private static final String s_localURL = "http://localhost:8084/eTraveler/";
+  private static final String s_localURL = "http://localhost:8084/eTraveler";
 
   private class MyResponseHandler implements ResponseHandler< Map<String, Object > > {
     public Map<String, Object> handleResponse(final HttpResponse response) throws
@@ -78,6 +79,13 @@ public class EtClient {
     createClient();
   }
 
+  public EtClient(String db, String exp, String appSuffix) {
+    if (appSuffix != null) m_appSuffix = appSuffix;
+    if (db != null) m_db = db;
+    if (exp != null) m_exp = exp;
+    createClient();
+  }
+
   public void setProdServer(boolean isProd) {
     m_prodServer = isProd;
   }
@@ -94,7 +102,7 @@ public class EtClient {
     String url = s_prodURL;
     if (!m_prodServer) url = s_devURL;
     if (m_localServer) url = s_localURL;
-    url += (m_db + "/Results/" + command);
+    url += (m_appSuffix + "/" + m_db + "/Results/" + command);
     return url;
   }
   

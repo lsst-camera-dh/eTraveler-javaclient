@@ -239,19 +239,20 @@ public class TestEtClientServices {
       myService.close();
     }
   }
-
-  // Temporarily ignore
-  @Ignore @Test
+  
+  // Temporarily reinstate to test appSuffix
+  @Test
   public void testGetResultsJH_schema() 
     throws UnsupportedEncodingException, EtClientException, IOException {
     boolean prodServer=false;
     System.out.println("\n\nRunning testGetResultsJH_schema");
     System.out.println("prodServer is " + prodServer);
-    boolean localServer=false;
+    boolean localServer=true;
     System.out.println("localServer is " + localServer);
-
+    String appSuffix="-jrb";
+    System.out.println("appSuffix is " + appSuffix);
     EtClientServices myService =
-      new EtClientServices("Prod", null, prodServer, localServer);
+      new EtClientServices("Prod", null, prodServer, localServer, appSuffix);
     String travelerName="SR-EOT-1";
     String hardwareType="ITL-CCD";
     String stepName="read_noise";
@@ -283,15 +284,15 @@ public class TestEtClientServices {
     }
   }
   
-  // Temporarily ignore
-  @Ignore @Test
+  // Temporarily reinstate
+  @Test
   public void TestGetRunFilepaths()
     throws UnsupportedEncodingException, EtClientException, IOException {
     boolean prodServer=false;
 
     System.out.println("\n\nRunning testGetRunFilepaths");
     System.out.println("prodServer is " + prodServer);
-    boolean localServer=false;
+    boolean localServer=true;
     System.out.println("localServer is " + localServer);
 
     EtClientServices myService =
@@ -362,7 +363,8 @@ throws UnsupportedEncodingException, EtClientException, IOException {
   throws UnsupportedEncodingException, EtClientException, IOException {
     System.out.println("\n\nRunning testDataServer");
     EtClientDataServer dataServer = 
-      new EtClientDataServer("LSST-CAMERA", EtClientDataServer.FRONTEND_DEV);
+      new EtClientDataServer("LSST-CAMERA", EtClientDataServer.FRONTEND_LOCAL,
+      "-jrb");
     
     
     HashMap<String, Object> results = null;

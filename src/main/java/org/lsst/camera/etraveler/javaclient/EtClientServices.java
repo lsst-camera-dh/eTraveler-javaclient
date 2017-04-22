@@ -8,6 +8,7 @@ import java.util.HashMap;
 public class EtClientServices  {
   private EtClient m_client=null;
   private String m_operator = "read_only";
+  private String m_appSuffix="";
 
   public EtClientServices() {
     m_client = new EtClient(null, null);
@@ -25,7 +26,17 @@ public class EtClientServices  {
       m_client.useLocalServer();
     }
   }
-   
+
+  public EtClientServices(String db, String exp, boolean prodServer,
+                          boolean localServer, String appSuffix) {
+    if (appSuffix != null) m_client = new EtClient(db, exp, appSuffix);
+    else m_client = new EtClient(db,exp);
+    m_client.setProdServer(prodServer);
+    if (localServer) {
+      m_client.useLocalServer();
+    }
+  }
+
   public Map<String, Object> getRunInfo(int activityId)
     throws UnsupportedEncodingException, IOException, EtClientException {
     HashMap<String, Object> args = new HashMap<String, Object> ();

@@ -31,6 +31,7 @@ class EtClientDataServer {
   private String m_experiment="LSST-CAMERA";
   private int m_frontend=FRONTEND_PROD;
   private Cloner m_cloner=null;
+  private String m_appSuffix="";
 
   // Map datasource mode to services to fetch data for that mode
   private HashMap<String, EtClientServices> m_clientMap = null;
@@ -48,7 +49,13 @@ class EtClientDataServer {
     m_experiment = experiment;
   }
 
-  
+  EtClientDataServer(String experiment, int frontend, String appSuffix) {
+    m_appSuffix = appSuffix;
+    if ((frontend > 0 )  && (frontend < 4)) {
+      m_frontend = frontend;
+    }   // else use default
+    m_experiment = experiment;
+  }  
 
   public Object fetchRun(String run)
     throws UnsupportedEncodingException, IOException, EtClientException {
@@ -83,7 +90,7 @@ class EtClientDataServer {
         break;
       }
       client = new EtClientServices(dataSourceMode, m_experiment, prodServer,
-                                    localServer);
+                                    localServer, m_appSuffix);
       m_clientMap.put(dataSourceMode, client);
       allData = new HashMap<Integer, HashMap<String, Object>>();
       m_allDataMap.put(dataSourceMode, allData);
