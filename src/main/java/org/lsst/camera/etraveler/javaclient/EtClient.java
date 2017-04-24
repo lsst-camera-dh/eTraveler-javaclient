@@ -33,7 +33,10 @@ import org.apache.http.util.EntityUtils;
 
 
 /**
- *
+ * Encapsulates information needed to post to an eTraveler Front-end server.
+ * Users typically do not instantiate directly.  See instead
+ * @see org.lsst.camera.etraveler.javaclient.EtClientServices
+ * and @see org.lsst.camera.etraveler.javaclient.EtClientDataServer
  * @author jrb
  */
 public class EtClient {
@@ -41,12 +44,13 @@ public class EtClient {
   private String m_exp="LSST-CAMERA";
   private boolean m_prodServer=true;
   private boolean m_localServer=false;
+  private String m_appSuffix="";
   private CloseableHttpClient m_httpclient = null;
   
-  private static final String s_prodURL = "http://lsst-camera.slac.stanford.edu/eTraveler/";
-  private static final String s_devURL = "http://lsst-camera-dev.slac.stanford.edu/eTraveler/";
+  private static final String s_prodURL = "http://lsst-camera.slac.stanford.edu/eTraveler";
+  private static final String s_devURL = "http://lsst-camera-dev.slac.stanford.edu/eTraveler";
 
-  private static final String s_localURL = "http://localhost:8084/eTraveler/";
+  private static final String s_localURL = "http://localhost:8084/eTraveler";
 
   private class MyResponseHandler implements ResponseHandler< Map<String, Object > > {
     public Map<String, Object> handleResponse(final HttpResponse response) throws
@@ -71,16 +75,40 @@ public class EtClient {
     }
   }
   
-  
+  /**
+   * 
+   * @param db      Database to access ("Prod", "Dev", ..)
+   * @param exp     Experiment (e.g. "LSST-CAM")
+   */
   public EtClient(String db, String exp) {
     if (db != null) m_db = db;
     if (exp != null) m_exp = exp;
     createClient();
   }
 
+  /**
+   * 
+   * @param db      Database to access ("Prod", "Dev",..)
+   * @param exp     Experiment (e.g., "LSST-CAM")
+   * @param appSuffix Used to specify alternate app name
+   */
+  public EtClient(String db, String exp, String appSuffix) {
+    if (appSuffix != null) m_appSuffix = appSuffix;
+    if (db != null) m_db = db;
+    if (exp != null) m_exp = exp;
+    createClient();
+  }
+
+  /**
+   * By default production server is used
+   * @param isProd 
+   */
   public void setProdServer(boolean isProd) {
     m_prodServer = isProd;
   }
+  /**
+   * By default local server is NOT used
+   */
   public void useLocalServer() {
     m_prodServer = false;
     m_localServer = true;
@@ -94,10 +122,21 @@ public class EtClient {
     String url = s_prodURL;
     if (!m_prodServer) url = s_devURL;
     if (m_localServer) url = s_localURL;
-    url += (m_db + "/Results/" + command);
+    url += (m_appSuffix + "/" + m_db + "/Results/" + command);
     return url;
   }
   
+  /**
+   * Send command to a front-end server; return results. This routine is
+   * invoked by methods in @see org.lsst.camera.etraveler.javaclient.EtClientServices
+   * @param command  
+   * @param args
+   * @return
+   * @throws JsonProcessingException
+   * @throws UnsupportedEncodingException
+   * @throws EtClientException
+   * @throws IOException 
+   */
   public Map<String, Object> execute(String command,
                                      HashMap<String, Object> args)
   throws JsonProcessingException, UnsupportedEncodingException,

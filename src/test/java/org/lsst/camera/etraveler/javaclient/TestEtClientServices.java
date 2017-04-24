@@ -21,6 +21,7 @@ import java.io.InputStream;
 
 
 import java.io.UnsupportedEncodingException;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 
 public class TestEtClientServices {
 
@@ -95,7 +96,7 @@ public class TestEtClientServices {
   }
 
   
-  @Ignore @Test
+  @Test
   public void testGetHardwareHierarchy() throws UnsupportedEncodingException,
                                                 EtClientException, IOException {
     boolean prodServer=false;
@@ -134,6 +135,8 @@ public class TestEtClientServices {
       myService.close();
     }
   }
+  
+
   @Test
   public void testGetRunResults() 
     throws UnsupportedEncodingException, EtClientException, IOException {
@@ -142,8 +145,11 @@ public class TestEtClientServices {
     System.out.println("prodServer is " + prodServer);
     boolean localServer=false;
     System.out.println("localServer is " + localServer);
+    String appSuffix="-jrb";
+    System.out.println("appSuffix is " + appSuffix);
 
-    EtClientServices myService = new EtClientServices("Dev", null, prodServer, localServer);
+    EtClientServices myService = new EtClientServices("Dev", null, prodServer, 
+      localServer, appSuffix);
     String run="4689D";
 
     String function="getRunResults";
@@ -163,6 +169,7 @@ public class TestEtClientServices {
 
   }
 
+
   @Test
   public void testGetRunSchemaResults() 
     throws UnsupportedEncodingException, EtClientException, IOException {
@@ -171,9 +178,10 @@ public class TestEtClientServices {
     System.out.println("prodServer is " + prodServer);
     boolean localServer=false;
     System.out.println("localServer is " + localServer);
-
+    String appSuffix="-jrb";
+    System.out.println("appSuffix is " + appSuffix);
     EtClientServices myService =
-      new EtClientServices("Dev", null, prodServer, localServer);
+      new EtClientServices("Dev", null, prodServer, localServer, appSuffix);
     String run="4689D";
     String schname="fe55_raft_analysis";
     String function="getRunResults";
@@ -194,6 +202,7 @@ public class TestEtClientServices {
 
   }
 
+  
   @Test
   public void testGetResultsJH() 
     throws UnsupportedEncodingException, EtClientException, IOException {
@@ -202,9 +211,10 @@ public class TestEtClientServices {
     System.out.println("prodServer is " + prodServer);
     boolean localServer=false;
     System.out.println("localServer is " + localServer);
-
+    String appSuffix="-jrb";
+    System.out.println("appSuffix is " + appSuffix);
     EtClientServices myService =
-      new EtClientServices("Prod", null, prodServer, localServer);
+      new EtClientServices("Prod", null, prodServer, localServer, appSuffix);
     String travelerName="SR-EOT-1";
     String hardwareType="ITL-CCD";
     String stepName="read_noise";
@@ -234,7 +244,8 @@ public class TestEtClientServices {
       myService.close();
     }
   }
-
+  
+  // Temporarily reinstate to test appSuffix
   @Test
   public void testGetResultsJH_schema() 
     throws UnsupportedEncodingException, EtClientException, IOException {
@@ -243,9 +254,10 @@ public class TestEtClientServices {
     System.out.println("prodServer is " + prodServer);
     boolean localServer=false;
     System.out.println("localServer is " + localServer);
-
+    String appSuffix="-jrb";
+    System.out.println("appSuffix is " + appSuffix);
     EtClientServices myService =
-      new EtClientServices("Prod", null, prodServer, localServer);
+      new EtClientServices("Prod", null, prodServer, localServer, appSuffix);
     String travelerName="SR-EOT-1";
     String hardwareType="ITL-CCD";
     String stepName="read_noise";
@@ -277,6 +289,7 @@ public class TestEtClientServices {
     }
   }
   
+  // Temporarily reinstate
   @Test
   public void TestGetRunFilepaths()
     throws UnsupportedEncodingException, EtClientException, IOException {
@@ -286,9 +299,10 @@ public class TestEtClientServices {
     System.out.println("prodServer is " + prodServer);
     boolean localServer=false;
     System.out.println("localServer is " + localServer);
-
+    String appSuffix="-jrb";
+    System.out.println("appSuffix is " + appSuffix);
     EtClientServices myService =
-      new EtClientServices("Prod", null, prodServer, localServer);
+      new EtClientServices("Prod", null, prodServer, localServer, appSuffix);
 
     String run="72";
     String function="getRunFilepaths";
@@ -305,9 +319,10 @@ public class TestEtClientServices {
     }
   }
 
-  @Test
+  // Temporarily ignore
+  @Ignore @Test
   public void testGetFilepathsJH() 
-    throws UnsupportedEncodingException, EtClientException, IOException {
+throws UnsupportedEncodingException, EtClientException, IOException {
     boolean prodServer=false;
     System.out.println("\n\nRunning testGetFilepathsJH");
     System.out.println("prodServer is " + prodServer);
@@ -349,7 +364,57 @@ public class TestEtClientServices {
     }
   }
 
-  
+  @Test
+  public void testDataServer() 
+  throws UnsupportedEncodingException, EtClientException, IOException {
+    System.out.println("\n\nRunning testDataServer");
+    EtClientDataServer dataServer = 
+      new EtClientDataServer("LSST-CAMERA", EtClientDataServer.FRONTEND_DEV,
+      "-jrb");
+    
+    
+    HashMap<String, Object> results = null;
+    
+    System.out.println("\nAll of 4689D");
+    results = (HashMap<String, Object>) dataServer.fetchRun("4689D", "Dev");
+    outputRun(results);      
+    
+    
+    System.out.println("\nKeep only step fe55_raft_acq");
+    results = (HashMap<String, Object>) dataServer.fetchRun("4689D", "Dev", 
+      "fe55_raft_acq", null, null);
+    outputRun(results); 
+    System.out.println("\nKeep only schema package_versions");
+    results = (HashMap<String, Object>) dataServer.fetchRun("4689D", "Dev", 
+      null, "package_versions", null);
+      outputRun(results);
+    System.out.println("\nKeep only step fe55_raft_acq, schema package_versions");
+    results = (HashMap<String, Object>) dataServer.fetchRun("4689D", "Dev", 
+      "fe55_raft_acq", "package_versions", null);
+    outputRun(results); 
+
+    ArrayList<ImmutablePair <String, Object>> itemFilters = 
+      new ArrayList<ImmutablePair <String, Object>>();
+    ImmutablePair<String, Object> amp = new ImmutablePair("amp", 3);
+    itemFilters.add(amp);
+    System.out.println("\n Exercise ItemFilter: amp=3, step=fe55_raft_analysis");
+    results = (HashMap<String, Object>) dataServer.fetchRun("4689D", "Dev",
+      "fe55_raft_analysis", null, itemFilters);
+    outputRun(results);
+
+    ImmutablePair<String, Object> slot = new ImmutablePair("slot", "S20");
+    itemFilters.add(slot);
+    System.out.println("\n Exercise ItemFilter: amp=3, slot=S20, step=fe55_raft_analysis");
+    results = (HashMap<String, Object>) dataServer.fetchRun("4689D", "Dev",
+      "fe55_raft_analysis", null, itemFilters);
+    outputRun(results);
+    
+    System.out.println("\nAll of 4689D again, to make sure it's still there");
+    results = (HashMap<String, Object>) dataServer.fetchRun("4689D", "Dev");
+    outputRun(results);      
+    
+  }
+ 
   private static void outputRun(Map<String, Object> results ) {
        System.out.println("Outer map has following non-instance key/value pairs");
     for (String k : results.keySet() ) {

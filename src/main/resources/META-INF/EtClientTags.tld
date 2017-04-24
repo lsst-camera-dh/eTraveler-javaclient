@@ -28,4 +28,73 @@
 
     <body-content>empty</body-content>
   </tag>
+
+  <tag>
+    <name>makeDataServer</name>
+    <tag-class>org.lsst.camera.etraveler.javaclient.MakeDataServer</tag-class>
+    <body-content>empty</body-content>
+    <!-- experiment defaults to LSST-CAMERA -->
+    <attribute>
+      <name>experiment</name>
+      <type>java.lang.String</type>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <!-- frontend (server) defaults to prod.  Other options: dev, local -->
+    <attribute>
+      <name>frontend</name>
+      <type>java.lang.String</type>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <!-- new class instance will be stuffed in session variable of this name -->
+    <attribute>
+      <name>outputVariable</name>
+      <type>java.lang.String</type>
+      <rtexprvalue>true</rtexprvalue>
+      <required>true</required>
+    </attribute>
+  </tag>
+  <tag>
+    <name>fetchRunData</name>
+    <tag-class>org.lsst.camera.etraveler.javaclient.FetchDataData</tag-class>
+    <body-content>empty</body-content>
+    <attribute>
+      <name>dataServer</name>
+      <type>org.lsst.camera.etraveler.javaclient.EtClientDataServer</type>
+      <required>true</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>run</name>
+      <type>java.lang.String</type>
+      <required>true</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>dataSourceMode</name>
+      <type>java.lang.String</type>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>step</name>
+      <type>java.lang.String</type>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>schema</name>
+      <type>java.lang.String</type>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>itemFilters</name>
+      <type>java.util.ArrayList</type>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>outputVariable</name>
+      <type>java.lang.String</type>
+      <rtexprvalue>true</rtexprvalue>
+      <required>true</required>
+    </attribute>
+
+  </tag>
 </taglib>
