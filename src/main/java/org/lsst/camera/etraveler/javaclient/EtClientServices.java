@@ -111,8 +111,7 @@ public class EtClientServices  {
   }
 
   /**
-   * Returns ArrayList of maps similar to 
-   * @see org.lsst.camera.etraveler.javaclient.EtClientServices#getContainingHardwareHierarchy
+   * Returns ArrayList of maps similar to getContainingHardwareHierarchy
    * but for ancestors of specified component
    * @param experimentSN
    * @param hardwareTypeName

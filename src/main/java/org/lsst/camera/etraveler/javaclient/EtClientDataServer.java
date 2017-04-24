@@ -73,7 +73,7 @@ public class EtClientDataServer {
   /**
    *  Fetches from "Prod" database
    * @param run
-   * @return  Same as @see org.lsst.camera.etraveler.javaclient.EtClientServices#getRunResults
+   * @return  Same as EtClientServices.getRunResults
    * @throws UnsupportedEncodingException
    * @throws IOException
    * @throws EtClientException 
