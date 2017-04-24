@@ -96,7 +96,7 @@ public class TestEtClientServices {
   }
 
   
-  @Ignore @Test
+  @Test
   public void testGetHardwareHierarchy() throws UnsupportedEncodingException,
                                                 EtClientException, IOException {
     boolean prodServer=false;
@@ -136,8 +136,8 @@ public class TestEtClientServices {
     }
   }
   
-  // Temporarily ignore
-  @Ignore @Test
+
+  @Test
   public void testGetRunResults() 
     throws UnsupportedEncodingException, EtClientException, IOException {
     System.out.println("\n\nRunning testGetRunResults");
@@ -145,8 +145,11 @@ public class TestEtClientServices {
     System.out.println("prodServer is " + prodServer);
     boolean localServer=false;
     System.out.println("localServer is " + localServer);
+    String appSuffix="-jrb";
+    System.out.println("appSuffix is " + appSuffix);
 
-    EtClientServices myService = new EtClientServices("Dev", null, prodServer, localServer);
+    EtClientServices myService = new EtClientServices("Dev", null, prodServer, 
+      localServer, appSuffix);
     String run="4689D";
 
     String function="getRunResults";
@@ -166,8 +169,8 @@ public class TestEtClientServices {
 
   }
 
-  // Temporarily ignore
-  @Ignore @Test
+
+  @Test
   public void testGetRunSchemaResults() 
     throws UnsupportedEncodingException, EtClientException, IOException {
     boolean prodServer=false;
@@ -175,9 +178,10 @@ public class TestEtClientServices {
     System.out.println("prodServer is " + prodServer);
     boolean localServer=false;
     System.out.println("localServer is " + localServer);
-
+    String appSuffix="-jrb";
+    System.out.println("appSuffix is " + appSuffix);
     EtClientServices myService =
-      new EtClientServices("Dev", null, prodServer, localServer);
+      new EtClientServices("Dev", null, prodServer, localServer, appSuffix);
     String run="4689D";
     String schname="fe55_raft_analysis";
     String function="getRunResults";
@@ -198,8 +202,8 @@ public class TestEtClientServices {
 
   }
 
-  // Temporarily ignore
-  @Ignore @Test
+  
+  @Test
   public void testGetResultsJH() 
     throws UnsupportedEncodingException, EtClientException, IOException {
     boolean prodServer=false;
@@ -207,9 +211,10 @@ public class TestEtClientServices {
     System.out.println("prodServer is " + prodServer);
     boolean localServer=false;
     System.out.println("localServer is " + localServer);
-
+    String appSuffix="-jrb";
+    System.out.println("appSuffix is " + appSuffix);
     EtClientServices myService =
-      new EtClientServices("Prod", null, prodServer, localServer);
+      new EtClientServices("Prod", null, prodServer, localServer, appSuffix);
     String travelerName="SR-EOT-1";
     String hardwareType="ITL-CCD";
     String stepName="read_noise";
@@ -247,7 +252,7 @@ public class TestEtClientServices {
     boolean prodServer=false;
     System.out.println("\n\nRunning testGetResultsJH_schema");
     System.out.println("prodServer is " + prodServer);
-    boolean localServer=true;
+    boolean localServer=false;
     System.out.println("localServer is " + localServer);
     String appSuffix="-jrb";
     System.out.println("appSuffix is " + appSuffix);
@@ -292,11 +297,12 @@ public class TestEtClientServices {
 
     System.out.println("\n\nRunning testGetRunFilepaths");
     System.out.println("prodServer is " + prodServer);
-    boolean localServer=true;
+    boolean localServer=false;
     System.out.println("localServer is " + localServer);
-
+    String appSuffix="-jrb";
+    System.out.println("appSuffix is " + appSuffix);
     EtClientServices myService =
-      new EtClientServices("Prod", null, prodServer, localServer);
+      new EtClientServices("Prod", null, prodServer, localServer, appSuffix);
 
     String run="72";
     String function="getRunFilepaths";
@@ -363,7 +369,7 @@ throws UnsupportedEncodingException, EtClientException, IOException {
   throws UnsupportedEncodingException, EtClientException, IOException {
     System.out.println("\n\nRunning testDataServer");
     EtClientDataServer dataServer = 
-      new EtClientDataServer("LSST-CAMERA", EtClientDataServer.FRONTEND_LOCAL,
+      new EtClientDataServer("LSST-CAMERA", EtClientDataServer.FRONTEND_DEV,
       "-jrb");
     
     

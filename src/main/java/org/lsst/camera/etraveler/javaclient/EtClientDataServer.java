@@ -1,13 +1,5 @@
 package org.lsst.camera.etraveler.javaclient;
 
-/**
-   This class provides a way to stash per-run data so it can be
-   retrieved and optionally filtered without making a new request to
-   Front-end or db.   Web applications wishing to hang on to data
-   should create an EtClientDataServer object and stash it in a 
-   session variable.
- */
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
@@ -22,6 +14,14 @@ import com.rits.cloning.Cloner;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
+/**
+ * This class provides a way to stash per-run data so it can be
+ *  retrieved and optionally filtered without making a new request to
+ *  Front-end or db.   Web applications wishing to hang on to data
+ *  should create an EtClientDataServer object and stash it in a 
+ *  session variable.
+ * @author jrb
+ */
 class EtClientDataServer {
   public static final int FRONTEND_PROD=1;
   public static final int FRONTEND_DEV=2;
@@ -39,16 +39,29 @@ class EtClientDataServer {
   // The String key is dataSourceMode (Dev, Prod, etc.); int key is run number
   // Innermost Object is meant to represent data from one run
   private HashMap<String, HashMap<Integer, HashMap<String, Object> > > m_allDataMap=null;
+  /**
+   * Assumes production front-end server, standard app name ("eTraveler")
+   * @param experiment 
+   */
   EtClientDataServer(String experiment) {
     m_experiment = new String(experiment);
   }
+  /**
+   * Assumes standard app name ("eTraveler")
+   * @param experiment
+   * @param frontend 
+   */
   EtClientDataServer(String experiment, int frontend) {
     if ((frontend > 0 )  && (frontend < 4)) {
       m_frontend = frontend;
     }   // else use default
     m_experiment = experiment;
   }
-
+/**
+ * @param experiment
+ * @param frontend
+ * @param appSuffix Will be appended to "eTraveler"
+ */
   EtClientDataServer(String experiment, int frontend, String appSuffix) {
     m_appSuffix = appSuffix;
     if ((frontend > 0 )  && (frontend < 4)) {
@@ -57,10 +70,27 @@ class EtClientDataServer {
     m_experiment = experiment;
   }  
 
+  /**
+   *  Fetches from "Prod" database
+   * @param run
+   * @return  Same as @see org.lsst.camera.etraveler.javaclient.EtClientServices#getRunResults
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
   public Object fetchRun(String run)
     throws UnsupportedEncodingException, IOException, EtClientException {
     return fetchRun(run, "Prod");
   }
+  /**
+   * May specify alternate db
+   * @param run
+   * @param dataSourceMode
+   * @return
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
   public Object fetchRun(String run, String dataSourceMode)
     throws UnsupportedEncodingException, IOException, EtClientException {
     EtClientServices client = null;
@@ -111,12 +141,36 @@ class EtClientDataServer {
 
     return results;
   }
+  /**
+   * For schemas including an itemFilter keyword, return only data matching
+   * specified value.  But all data for run is cached
+   * @param run
+   * @param itemFilters List of pairs specifying schema keyword and value,
+   * e.g. ("amp", 3) or ("slot", "S02")
+   * @return
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
   public Object fetchRun(String run,
                          ArrayList<ImmutablePair<String, Object>> itemFilters)
     throws UnsupportedEncodingException, IOException, EtClientException {
     return fetchRun(run, "Prod", null, null, itemFilters);
   }
-      
+  
+  /**
+   * Return only data satisfying constraints.  But all data for the run is
+   * cached
+   * @param run
+   * @param dataSourceMode
+   * @param step
+   * @param schema
+   * @param itemFilters
+   * @return
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
   public Object fetchRun(String run, String dataSourceMode, String step,
                          String schema,
                          ArrayList<ImmutablePair<String, Object> > itemFilters)
