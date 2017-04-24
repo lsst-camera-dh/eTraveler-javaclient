@@ -22,7 +22,7 @@ import org.apache.commons.lang3.tuple.Pair;
  *  session variable.
  * @author jrb
  */
-class EtClientDataServer {
+public class EtClientDataServer {
   public static final int FRONTEND_PROD=1;
   public static final int FRONTEND_DEV=2;
   public static final int FRONTEND_LOCAL=3;
@@ -43,7 +43,7 @@ class EtClientDataServer {
    * Assumes production front-end server, standard app name ("eTraveler")
    * @param experiment 
    */
-  EtClientDataServer(String experiment) {
+  public EtClientDataServer(String experiment) {
     m_experiment = new String(experiment);
   }
   /**
@@ -51,7 +51,7 @@ class EtClientDataServer {
    * @param experiment
    * @param frontend 
    */
-  EtClientDataServer(String experiment, int frontend) {
+  public EtClientDataServer(String experiment, int frontend) {
     if ((frontend > 0 )  && (frontend < 4)) {
       m_frontend = frontend;
     }   // else use default
@@ -62,7 +62,7 @@ class EtClientDataServer {
  * @param frontend
  * @param appSuffix Will be appended to "eTraveler"
  */
-  EtClientDataServer(String experiment, int frontend, String appSuffix) {
+  public EtClientDataServer(String experiment, int frontend, String appSuffix) {
     m_appSuffix = appSuffix;
     if ((frontend > 0 )  && (frontend < 4)) {
       m_frontend = frontend;
