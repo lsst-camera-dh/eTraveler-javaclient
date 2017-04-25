@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
 import com.rits.cloning.Cloner;
+import org.lsst.camera.etraveler.javaclient.utils.RunUtils;
 
 //import org.lsst.camera.etraveler.javaclient.getHarnessed.GetHarnessedData;
 
@@ -15,7 +16,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 /**
- * This class provides a way to stash per-run data so it can be
+ * This class provides a way to cache per-run data so it can be
  *  retrieved and optionally filtered without making a new request to
  *  Front-end or db.   Web applications wishing to hang on to data
  *  should create an EtClientDataServer object and stash it in a 
@@ -95,7 +96,7 @@ public class EtClientDataServer {
     throws UnsupportedEncodingException, IOException, EtClientException {
     EtClientServices client = null;
     HashMap<Integer, HashMap<String, Object> > allData=null;
-    Integer runInt = formRunInt(run);
+    Integer runInt = RunUtils.formRunInt(run);
     if (m_clientMap == null) {
       m_clientMap = new HashMap<String, EtClientServices>();
       m_allDataMap = new
@@ -180,98 +181,18 @@ public class EtClientDataServer {
       (HashMap<String, Object>) fetchRun(run, dataSourceMode);
 
     // if step eliminate other steps
-    if (step != null) removeSteps(results.get("steps"), step);
+    if (step != null) RunUtils.removeSteps(results.get("steps"), step);
 
     // if schema eliiminate other schemas
-    if (schema != null) removeSchemas(results.get("steps"), schema);
+    if (schema != null) RunUtils.removeSchemas(results.get("steps"), schema);
     
     // if itemFilter, prune
     if (itemFilters != null) {
-      pruneRun((HashMap<String, Object>) results.get("steps"),
-               itemFilters);
+      RunUtils.pruneRun((HashMap<String, Object>) results.get("steps"),
+                        itemFilters);
     }
     return results;
     
-  }
-  //private static HashMap<String, Object>
-  private static void
-    pruneRun(HashMap<String, Object> steps,
-             ArrayList<ImmutablePair<String, Object>> filters) {
-    if (filters == null) return;
-    if (filters.size() == 0 ) return;
-    for (Object oStep: steps.values() ) {    // for each step
-      HashMap<String, Object> step = (HashMap<String, Object>) oStep;
-      for (Object oSchema: step.values() ) {   //  for each schema
-        ArrayList<HashMap<String, Object> > schema =
-          (ArrayList<HashMap<String, Object> > ) oSchema;
-        pruneSchema(schema, filters);
-      }
-      
-    }
-    //return results;
-  }
-
-  private static void removeSteps(Object stepsObj, String stepToKeep) {
-    HashMap<String, Object> steps = (HashMap<String, Object>) stepsObj;
-
-    Set<String> keys = new HashSet<String>((steps.keySet()));
-    for (String stepName : keys ) {
-      if (!stepName.equals(stepToKeep)) steps.remove(stepName);
-    }
-  }
-
-  private static void removeSchemas(Object stepsObj, String schemaToKeep) {
-    HashMap<String, Object> steps = (HashMap<String, Object>) stepsObj;
-    Set<String> stepKeys = new HashSet<String>(steps.keySet());
-    for (String stepName : stepKeys) {
-      HashMap<String, Object> schemas =
-        (HashMap<String, Object>) steps.get(stepName);
-      Set<String> schemaKeys = new HashSet<String>(schemas.keySet());
-      if (!schemaKeys.contains(schemaToKeep)) { // step is of no interest
-        steps.remove(stepName);
-      } else {
-        for (String schemaName : schemaKeys) {
-          if (!schemaName.equals(schemaToKeep)) schemas.remove(schemaName);
-        }
-      }
-    }
-  }
-
-  private static void
-    pruneSchema(ArrayList<HashMap<String,Object> > schemaData,
-                ArrayList<ImmutablePair<String, Object> >filters) {
-
-    for (ImmutablePair<String, Object> filter : filters) {
-      String key = filter.getLeft();
-      Object val = filter.getRight();
-
-      HashMap<String, Object> instance0 = schemaData.get(0);
-      if (!(instance0.containsKey(key))) continue;
-
-      for (int i=(schemaData.size() - 1); i > 0; i--) {
-        if (!(schemaData.get(i).get(key).equals(val)) ) {
-          schemaData.remove(i);
-        }
-      }
-    }
-  }
-  private static int formRunInt(String st) throws EtClientException {
-    int theInt;
-    try {
-      theInt = Integer.parseInt(st);
-      } catch (NumberFormatException e) {
-      try {
-        theInt = Integer.parseInt(st.substring(0, st.length() -1));
-      }  catch (NumberFormatException e2) {
-        throw new EtClientException("Supplied run value " + st +
-                                        " is not valid");
-      }
-      if (theInt < 1) {
-        throw new EtClientException("Supplied run value " + st +
-                                    " is not valid");
-      }
-    }
-    return theInt;
   }
 }
     

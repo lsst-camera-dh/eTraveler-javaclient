@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.HashMap;
-
+import java.util.ArrayList;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.lsst.camera.etraveler.javaclient.utils.RunUtils;
+  
 /**
  * Class which knows how to send requests to eTraveler front-end to
  * retrieve database entries
@@ -219,6 +222,39 @@ public class EtClientServices  {
     HashMap<String, Object> results =
       (HashMap<String, Object>) m_client.execute("getResults", args);
     return (HashMap<String, Object>) consumeAck(results).get("results");
+  }
+
+    /**
+     * Fetch data as above. Then filter using @arg itemFilters.  
+     * @param travelerName
+     * @param hardwareType
+     * @param stepName
+     * @param schemaName
+     * @param model
+     * @param experimentSN
+     * @param itemFilters list of (key, value) pairs.  If key is key for a
+     * schema, throw out any instance of that schema which don't have
+     * specified value
+     * @return
+     * @throws UnsupportedEncodingException
+     * @throws IOException
+     * @throws EtClientException 
+     */
+  public HashMap<String, Object>
+    getResultsJH(String travelerName, String hardwareType, String stepName,
+                 String schemaName, String model, String experimentSN,
+                 ArrayList<ImmutablePair<String, Object>> itemFilters)
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    HashMap<String, Object> results =
+      getResultsJH(travelerName, hardwareType, stepName, schemaName,
+                   model, experimentSN);
+    if (itemFilters == null) return results;
+    for (Object k : results.keySet()) {
+      HashMap<String, Object> oneRun = (HashMap<String, Object>) results.get(k);
+      HashMap<String, Object> steps = (HashMap<String, Object>) oneRun.get("steps");
+      RunUtils.pruneRun(steps, itemFilters);
+    }
+    return results;
   }
 
   /**
