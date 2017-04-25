@@ -245,8 +245,57 @@ public class TestEtClientServices {
     }
   }
   
-  // Temporarily reinstate to test appSuffix
   @Test
+  public void testGetResultsJH_filter() 
+    throws UnsupportedEncodingException, EtClientException, IOException {
+    boolean prodServer=false;
+    System.out.println("\n\nRunning testGetResultsJH_filter");
+    System.out.println("prodServer is " + prodServer);
+    boolean localServer=false;
+    System.out.println("localServer is " + localServer);
+    String appSuffix="-jrb";
+    System.out.println("appSuffix is " + appSuffix);
+    EtClientServices myService =
+      new EtClientServices("Prod", null, prodServer, localServer, appSuffix);
+    String travelerName="SR-EOT-1";
+    String hardwareType="ITL-CCD";
+    String stepName="read_noise";
+    String model="3800C";
+
+    String function="getResultsJH";
+    System.out.println("Arguments are travelerName=" + travelerName +
+                       " hardwareType=" + hardwareType +
+                       " stepName=" + stepName +
+                       " schemaName=null" +
+                       " model=" + model + 
+                       ", function=" + function);
+    System.out.println("And filter ('amp', 3) ");
+    ArrayList<ImmutablePair <String, Object>> itemFilters = 
+      new ArrayList<ImmutablePair <String, Object>>();
+    ImmutablePair<String, Object> amp = new ImmutablePair("amp", 3);
+    itemFilters.add(amp);
+    
+    try {
+      Map<String, Object> results = 
+        myService.getResultsJH(travelerName, hardwareType, stepName,
+                               null, model, null, itemFilters);
+      for (String cmp : results.keySet() ) {
+        HashMap<String, Object> cmpResults =
+          (HashMap<String, Object>) results.get(cmp);
+        System.out.println("Results for " + cmp);
+        TestEtClientServices.outputRun(cmpResults);
+      }
+    } catch (Exception ex) {
+      System.out.println("failed with exception " + ex.getMessage());
+      throw new EtClientException(ex.getMessage());
+    } finally {
+      myService.close();
+    }
+  }
+  
+  
+  // Take it for now. A lot of output
+  @Ignore @Test
   public void testGetResultsJH_schema() 
     throws UnsupportedEncodingException, EtClientException, IOException {
     boolean prodServer=false;
@@ -289,8 +338,8 @@ public class TestEtClientServices {
     }
   }
   
-  // Temporarily reinstate
-  @Test
+  // Don't need to run this regularly. Generates a log of output
+  @Ignore @Test
   public void TestGetRunFilepaths()
     throws UnsupportedEncodingException, EtClientException, IOException {
     boolean prodServer=false;
@@ -364,6 +413,7 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     }
   }
 
+  
   @Test
   public void testDataServer() 
   throws UnsupportedEncodingException, EtClientException, IOException {
@@ -375,9 +425,9 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     
     HashMap<String, Object> results = null;
     
-    System.out.println("\nAll of 4689D");
-    results = (HashMap<String, Object>) dataServer.fetchRun("4689D", "Dev");
-    outputRun(results);      
+    //System.out.println("\nAll of 4689D");
+    //results = (HashMap<String, Object>) dataServer.fetchRun("4689D", "Dev");
+    //outputRun(results);      
     
     
     System.out.println("\nKeep only step fe55_raft_acq");
@@ -397,10 +447,10 @@ throws UnsupportedEncodingException, EtClientException, IOException {
       new ArrayList<ImmutablePair <String, Object>>();
     ImmutablePair<String, Object> amp = new ImmutablePair("amp", 3);
     itemFilters.add(amp);
-    System.out.println("\n Exercise ItemFilter: amp=3, step=fe55_raft_analysis");
-    results = (HashMap<String, Object>) dataServer.fetchRun("4689D", "Dev",
-      "fe55_raft_analysis", null, itemFilters);
-    outputRun(results);
+    //System.out.println("\n Exercise ItemFilter: amp=3, step=fe55_raft_analysis");
+    //results = (HashMap<String, Object>) dataServer.fetchRun("4689D", "Dev",
+    //  "fe55_raft_analysis", null, itemFilters);
+    //outputRun(results);
 
     ImmutablePair<String, Object> slot = new ImmutablePair("slot", "S20");
     itemFilters.add(slot);

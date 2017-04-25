@@ -55,7 +55,7 @@ public class EtClient {
   private class MyResponseHandler implements ResponseHandler< Map<String, Object > > {
     public Map<String, Object> handleResponse(final HttpResponse response) throws
       ClientProtocolException, IOException {
-      System.out.println("Inside handleResponse\n");
+      //System.out.println("Inside handleResponse\n");
       int status = response.getStatusLine().getStatusCode();
       //System.out.println("Returned response was ");
       //System.out.println(status);
