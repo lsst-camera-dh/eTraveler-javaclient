@@ -24,14 +24,10 @@ import java.io.UnsupportedEncodingException;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
 public class TestEtClientServices {
-
   private HashMap<String, Object> m_params;
 
-
   @Before
-  public void setup() {
-
-  }
+  public void setup() {  }
   
   @Test
   public void testGetRunInfo() throws UnsupportedEncodingException,
@@ -65,12 +61,10 @@ public class TestEtClientServices {
   @Test
   public void testGetManufacturerId() throws UnsupportedEncodingException,
                                       EtClientException, IOException {
-
     boolean prodServer=true;
     System.out.println("\nRunning testGetManufacturerId");
     System.out.println("prodServer is " + prodServer);
 
-    //EtClientServices myService = new EtClientServices("Dev", null, false, true);
     EtClientServices myService = new EtClientServices("Dev", null, prodServer);
 
     try {
@@ -94,7 +88,6 @@ public class TestEtClientServices {
       myService.close();
     }
   }
-
   
   @Test
   public void testGetHardwareHierarchy() throws UnsupportedEncodingException,
@@ -136,8 +129,8 @@ public class TestEtClientServices {
     }
   }
   
-
-  @Test
+  // Temporarily ignore
+  @Ignore   @Test
   public void testGetRunResults() 
     throws UnsupportedEncodingException, EtClientException, IOException {
     System.out.println("\n\nRunning testGetRunResults");
@@ -166,11 +159,10 @@ public class TestEtClientServices {
     } finally {
       myService.close();
     }
-
   }
 
-
-  @Test
+  // Temporarily ignore
+  @Ignore   @Test
   public void testGetRunSchemaResults() 
     throws UnsupportedEncodingException, EtClientException, IOException {
     boolean prodServer=false;
@@ -199,11 +191,10 @@ public class TestEtClientServices {
     } finally {
       myService.close();
     }
-
   }
-
   
-  @Test
+  // Temporarily ignore
+  @Ignore   @Test
   public void testGetResultsJH() 
     throws UnsupportedEncodingException, EtClientException, IOException {
     boolean prodServer=false;
@@ -245,7 +236,8 @@ public class TestEtClientServices {
     }
   }
   
-  @Test
+  // Temporarily ignore
+  @Ignore   @Test
   public void testGetResultsJH_filter() 
     throws UnsupportedEncodingException, EtClientException, IOException {
     boolean prodServer=false;
@@ -378,7 +370,6 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     boolean localServer=false;
     System.out.println("localServer is " + localServer);
 
-
     EtClientServices myService =
       new EtClientServices("Prod", null, prodServer, localServer);
     String travelerName="SR-EOT-1";
@@ -412,16 +403,15 @@ throws UnsupportedEncodingException, EtClientException, IOException {
       myService.close();
     }
   }
-
   
-  @Test
+  // Temporarily ignore
+  @Ignore   @Test
   public void testDataServer() 
   throws UnsupportedEncodingException, EtClientException, IOException {
     System.out.println("\n\nRunning testDataServer");
     EtClientDataServer dataServer = 
       new EtClientDataServer("LSST-CAMERA", EtClientDataServer.FRONTEND_DEV,
       "-jrb");
-    
     
     HashMap<String, Object> results = null;
     
@@ -462,9 +452,194 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     System.out.println("\nAll of 4689D again, to make sure it's still there");
     results = (HashMap<String, Object>) dataServer.fetchRun("4689D", "Dev");
     outputRun(results);      
-    
   }
- 
+
+  @Test
+  public void testGetActivity() throws UnsupportedEncodingException,
+                                      EtClientException, IOException {
+    boolean prodServer = false;
+    boolean localServer = false;
+    String appSuffix="-jrb";
+    int activityId = 23000;
+    String db="Prod";
+    System.out.println("\n Exercise getActivity for db=" + db +
+                       " and activityId=" + activityId);
+    EtClientServices myService =
+      new EtClientServices("Prod", null, prodServer, localServer, appSuffix);
+
+    try {
+      HashMap<String, Object> results =
+        myService.getActivity(activityId);
+      for (String key : results.keySet()) {
+        System.out.println(key + ":" + results.get(key));
+      }
+    } catch (Exception ex) {
+      System.out.println("Post failed with message " + ex.getMessage());
+      throw new EtClientException(ex.getMessage());
+    } finally {
+      myService.close();
+    }
+  }
+
+  @Test
+  public void testGetRunActivities() throws UnsupportedEncodingException,
+                                            EtClientException, IOException {
+    boolean prodServer = false;
+    boolean localServer = false;
+    String appSuffix="-jrb";
+    //String run="";
+    int run = 4248;
+    String db="Dev";
+    System.out.println("\n Exercise getRunActivities for db=" + db +
+                       " and run =" + run);
+    EtClientServices myService =
+      new EtClientServices(db, null, prodServer, localServer, appSuffix);
+
+    try {
+      ArrayList<HashMap<String, Object>> results =
+        myService.getRunActivities(run);
+      for (HashMap<String, Object> act : results) {
+        System.out.println("Next activity data:");
+        for (String key : act.keySet()) {
+          System.out.println(key + ":" + act.get(key));
+        }
+      }
+    } catch (Exception ex) {
+      System.out.println("Post failed with message " + ex.getMessage());
+      throw new EtClientException(ex.getMessage());
+    } finally {
+      myService.close();
+    }
+  }
+
+  @Test
+  public void testRunSummary() throws UnsupportedEncodingException,
+                                      EtClientException, IOException {
+    boolean prodServer = false;
+    boolean localServer = false;
+    String appSuffix="-jrb";
+    String run = "4248D";
+    String db="Dev";
+    System.out.println("\n Exercise getRunSummary for db=" + db +
+                       " and run=" + run);
+    EtClientServices myService =
+      new EtClientServices(db, null, prodServer, localServer, appSuffix);
+
+    try {
+      HashMap<String, Object> results =
+        myService.getRunSummary(run);
+      for (String key : results.keySet()) {
+        System.out.println(key + ":" + results.get(key));
+      }
+    } catch (Exception ex) {
+      System.out.println("Post failed with message " + ex.getMessage());
+      throw new EtClientException(ex.getMessage());
+    } finally {
+      myService.close();
+    }
+  }
+
+  @Test
+  public void testGetInstances() throws UnsupportedEncodingException,
+                                        EtClientException, IOException {
+    boolean prodServer = false;
+    boolean localServer = false;
+    String appSuffix="-jrb";
+    String htype = "boojum";
+    String db="Raw";
+    System.out.println("\n Exercise getHardwareInstance for db=" + db +
+                       " and hardware type=" + htype);
+    EtClientServices myService =
+      new EtClientServices(db, null, prodServer, localServer, appSuffix);
+
+    try {
+      ArrayList<HashMap<String, Object> > results =
+        myService.getHardwareInstances(htype, null);
+      for (HashMap<String, Object> cmp : results) {
+        System.out.println("\n Next component:");
+        for (String key : cmp.keySet()) {
+          System.out.println(key + ":" + cmp.get(key));
+        }
+      }
+    } catch (Exception ex) {
+      System.out.println("Post failed with message " + ex.getMessage());
+      throw new EtClientException(ex.getMessage());
+    } finally {
+      myService.close();
+    }
+  }
+
+  @Test
+  public void testManualRun() throws UnsupportedEncodingException,
+                                     EtClientException, IOException {
+    boolean prodServer = false;
+    boolean localServer = false;
+    String appSuffix="-jrb";
+    //String run = "4276D";
+    int run = 4276;
+    String db="Dev";
+    System.out.println("\n Exercise getManualRunResults for db=" + db +
+                       " and run=" + run);
+    EtClientServices myService =
+      new EtClientServices(db, null, prodServer, localServer, appSuffix);
+
+    try {
+      HashMap<String, Object> results =
+        myService.getManualRunResults(run);
+      for (String key : results.keySet()) {
+        if (!key.equals("steps")) {   // general run info
+          System.out.println(key + ":" + results.get(key));
+        }
+      }
+      printManualSteps((HashMap<String, Object>) results.get("steps"));
+    } catch (Exception ex) {
+      System.out.println("Post failed with message " + ex.getMessage());
+      throw new EtClientException(ex.getMessage());
+    } finally {
+      myService.close();
+    }
+  }
+
+  @Test
+  public void testManualStep() throws UnsupportedEncodingException,
+                                     EtClientException, IOException {
+    boolean prodServer = false;
+    boolean localServer = false;
+    String appSuffix="-jrb";
+    String traveler="InputTraveler";
+    String stepName="hasInputs";
+    String htype="boojum";
+
+    String db="Raw";
+    System.out.println("\n Exercise getManualResultsStep for db=" + db +
+                       ", traveler=" + traveler + ", step=" + stepName
+                       + " and hardware type=" + htype);
+    EtClientServices myService =
+      new EtClientServices(db, null, prodServer, localServer, appSuffix);
+
+    try {
+      HashMap<String, Object> results =
+        myService.getManualResultsStep(traveler, stepName, htype, null, null);
+      for (String expSN : results.keySet()) {
+        HashMap<String, Object> expData = (HashMap<String, Object>)
+          results.get(expSN);
+        System.out.println("\n\nFor component " + expSN);
+        for (String key : expData.keySet()) {
+          if (!key.equals("steps")) {   // general run info
+            System.out.println(key + ":" + expData.get(key));
+          }
+        }
+        printManualSteps((HashMap<String, Object>) expData.get("steps"));
+      }
+    } catch (Exception ex) {
+      System.out.println("Post failed with message " + ex.getMessage());
+      throw new EtClientException(ex.getMessage());
+    } finally {
+      myService.close();
+    }
+  }
+
+  
   private static void outputRun(Map<String, Object> results ) {
        System.out.println("Outer map has following non-instance key/value pairs");
     for (String k : results.keySet() ) {
@@ -473,12 +648,11 @@ throws UnsupportedEncodingException, EtClientException, IOException {
       }
     }
 
-    //Map<String, Map<String, ArrayList <Map<String, Object> > > >schemaMap;
     Map<String, Object> stepMap;
     stepMap =
       (Map<String, Object>) results.get("steps");
     for (String name : stepMap.keySet() ) {
-      System.out.println("Step name " + name);
+      System.out.println("\nStep name " + name);
       Map<String, Object> perStep = (Map<String, Object>) stepMap.get(name); 
       for (String schname : perStep.keySet()) {
         System.out.println("  Schema name " + schname);
@@ -508,5 +682,19 @@ throws UnsupportedEncodingException, EtClientException, IOException {
       System.out.println(" ");
     }
   }
-
+  private static void printManualSteps(Map<String, Object> steps) {
+    for (String step : steps.keySet()) {
+      System.out.println("Step name: " + step);
+      HashMap<String, Object> inputs =
+        (HashMap<String, Object>) steps.get(step);
+      for (String iName : inputs.keySet()) {
+        System.out.println("Input name: " + iName);
+        HashMap<String, Object> input =
+          (HashMap<String, Object>) inputs.get(iName);
+        for (String k : input.keySet() ) {
+          System.out.println("For key '" + k + "' value is: " + input.get(k));
+        }
+      }
+    }
+  }
 }

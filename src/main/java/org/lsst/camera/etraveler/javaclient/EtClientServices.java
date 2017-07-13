@@ -114,7 +114,7 @@ public class EtClientServices  {
   }
 
   /**
-   * Returns ArrayList of maps similar to getContainingHardwareHierarchy
+   * Returns ArrayList of maps similar to getHardwareHierarchy
    * but for ancestors of specified component
    * @param experimentSN
    * @param hardwareTypeName
@@ -291,7 +291,208 @@ public class EtClientServices  {
     return (HashMap<String, Object>) consumeAck(results).get("results");
   }
 
+  /**
+   * Return information about the specified activity
+   * @param activityId
+   * @return Map returning process name, activity id, begin and end times,
+   *         status    
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */  
+  public HashMap<String, Object> getActivity(int activityId)
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    HashMap<String, Object> args = new HashMap<String, Object> ();
+    Integer iAct = new Integer(activityId);
+    args.put("activityId", iAct.toString());
+    args.put("function", "getActivity");
+    HashMap<String, Object> results =
+      (HashMap<String, Object>) m_client.execute("getResults", args);
+    return (HashMap<String, Object>) consumeAck(results).get("results");
+  }
+
+  /**
+   * Return information about activities in the specified run
+   * @param run  (int)
+   * @return array list of maps.  See getActivity doc. for contents
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
+  public ArrayList<HashMap<String, Object> > getRunActivities(int run)
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    Integer runI = new Integer(run);
+    return getRunActivities(runI.toString());
+  }
+
+  /**
+   * Return information about activities in the specified run
+   * @param run  (String)
+   * @return array list of maps.  See getActivity doc. for contents
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
+  public ArrayList<HashMap<String, Object> > getRunActivities(String run)
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    HashMap<String, Object> args = new HashMap<String, Object> ();
+    args.put("run", run);
+    args.put("function", "getRunActivities");    
+    HashMap<String, Object> results =
+      (HashMap<String, Object>) m_client.execute("getResults", args);
+    return (ArrayList<HashMap<String, Object> >)
+      consumeAck(results).get("results");
+  }
     
+  /**
+   * Return information about the specified run
+   * @param run  (int)
+   * @return map with keys traveler name, traveler version, run number (int),
+   *         run number (String), root activity id, hardware type,
+   *         experimentSN, begin and end times, run status
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
+  public HashMap<String, Object>  getRunSummary(int run)
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    Integer runI = new Integer(run);
+    return getRunSummary(runI.toString());
+  }
+
+  /**
+   * Return information about the specified run
+   * @param run  (String)
+   * @return map with keys traveler name, traveler version, run number (int),
+   *         run number (String), root activity id, hardware type,
+   *         experimentSN, begin and end times, run status
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
+  public HashMap<String, Object>  getRunSummary(String run)
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    HashMap<String, Object> args = new HashMap<String, Object> ();
+    args.put("run", run);
+    args.put("function", "getRunSummary");    
+    HashMap<String, Object> results =
+      (HashMap<String, Object>) m_client.execute("getResults", args);
+    return (HashMap<String, Object> )
+      consumeAck(results).get("results");
+  }
+
+  /**
+   * Return information about hardware components of specified type
+   * @param  hardwareType
+   * @param  experimentSN (null for all)
+   * @return list of maps with keys 
+   *         experimentSN, model, manufacturer, manufacturerId,
+   *         remarks, status
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
+  public ArrayList<HashMap<String, Object> >
+    getHardwareInstances(String hardwareType, String experimentSN)
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    HashMap<String, Object> args = new HashMap<String, Object> ();
+    args.put("hardwareTypeName", hardwareType);
+    if (experimentSN != null) {
+      args.put("experimentSN", experimentSN);
+    }
+    args.put("function", "getHardwareInstances");    
+    HashMap<String, Object> results =
+      (HashMap<String, Object>) m_client.execute("getResults", args);
+    return (ArrayList<HashMap<String, Object> > )
+      consumeAck(results).get("results");
+  }
+
+  /**
+   * Return information about manual inputs for the specified run
+   * @param run  (String)
+   * @return map with scalar values for information about the run
+   *         overall (traveler name, traveler version, hardware type,
+   *         experimentSN, subsystem, run number, begin and end times,
+   *         run status) and the key 'steps' whose value is a map
+   *         keyed by step name.   Value for each step is again a 
+   *         map, keyed by manual input name.   And that value is
+   *         yet another map with keys datatype, units, activityId,
+   *         isOptional (0 for false, 1 for true) and value.   
+   *         All manual inputs except those of type
+   *         filepath or signature are included in the output
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
+  public HashMap<String, Object>  getManualRunResults(String run)
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    HashMap<String, Object> args = new HashMap<String, Object> ();
+    args.put("run", run);
+    args.put("function", "getManualRunResults");    
+    HashMap<String, Object> results =
+      (HashMap<String, Object>) m_client.execute("getResults", args);
+    return (HashMap<String, Object> )
+      consumeAck(results).get("results");
+  }
+
+  /**
+   * Return information about manual inputs for the specified run
+   * @param run  (int)
+   * @return map with scalar values for information about the run
+   *         overall (traveler name, traveler version, hardware type,
+   *         experimentSN, subsystem, run number, begin and end times,
+   *         run status) and the key 'steps' whose value is a map
+   *         keyed by step name.   Value for each step is again a 
+   *         map, keyed by manual input name.   And that value is
+   *         yet another map with keys datatype, units, activityId,
+   *         isOptional (0 for false, 1 for true) and value.   
+   *         All manual inputs except those of type
+   *         filepath or signature are included in the output
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
+  public HashMap<String, Object>  getManualRunResults(int run)
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    Integer iRun = new Integer(run);
+    return getManualRunResults(iRun.toString());
+  }
+
+  /**
+   * Return information about manual inputs for specified traveler type,
+   * step within the traveler and hardware type.  May further qualify
+   * by model or experimentSN.  
+   * @param  travelerName
+   * @param  stepName
+   * @param  hardwareType
+   * @param  model (may be null)
+   * @param  experimentSN (may be null)
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
+  public HashMap<String, Object>
+    getManualResultsStep(String travelerName, String stepName,
+                         String hardwareType, String model,
+                         String experimentSN)
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    HashMap<String, Object> args = new HashMap<String, Object> ();
+    args.put("function", "getManualResultsStep");
+    args.put("travelerName", travelerName);
+    args.put("stepName", stepName);
+    args.put("hardwareType", hardwareType);
+    if (model != null) {
+      args.put("model", model);
+    }
+    if (experimentSN != null) {
+      args.put("experimentSN", experimentSN);
+    }
+    HashMap<String, Object> results =
+      (HashMap<String, Object>) m_client.execute("getResults", args);
+    return (HashMap<String, Object> )
+      consumeAck(results).get("results");
+  }
+
   private Map<String, Object> consumeAck(Map<String, Object> results)
     throws EtClientException {
     if (results.get("acknowledge") == null) {
