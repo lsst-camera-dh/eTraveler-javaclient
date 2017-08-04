@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
 import java.io.IOException;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -270,7 +272,7 @@ public class TestEtClientServices {
     try {
       Map<String, Object> results = 
         myService.getResultsJH(travelerName, hardwareType, stepName,
-                               null, model, null, itemFilters);
+                               null, model, null, itemFilters, null);
       for (String cmp : results.keySet() ) {
         HashMap<String, Object> cmpResults =
           (HashMap<String, Object>) results.get(cmp);
@@ -360,8 +362,9 @@ public class TestEtClientServices {
     }
   }
 
-  // Temporarily ignore
-  @Ignore @Test
+
+  //  @Ignore @Test
+  @Test
   public void testGetFilepathsJH() 
 throws UnsupportedEncodingException, EtClientException, IOException {
     boolean prodServer=false;
@@ -369,13 +372,18 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     System.out.println("prodServer is " + prodServer);
     boolean localServer=false;
     System.out.println("localServer is " + localServer);
+    String appSuffix="-jrb";
 
     EtClientServices myService =
-      new EtClientServices("Prod", null, prodServer, localServer);
+      new EtClientServices("Prod", null, prodServer, localServer, appSuffix);
     String travelerName="SR-EOT-1";
     String hardwareType="ITL-CCD";
     String stepName="preflight_acq";
-    String experimentSN="ITL-3800C-021";
+    //String experimentSN="ITL-3800C-021";
+    String experimentSN=null;
+    HashSet<String> labels = new HashSet<String>();
+    labels.add("SR_Grade:SR_SEN_Reserve");
+    labels.add("SR_Grade:SR_SEN_Science");
     //String model="3800C";
 
     String function="getFilepathsJH";
@@ -383,12 +391,13 @@ throws UnsupportedEncodingException, EtClientException, IOException {
                        " hardwareType=" + hardwareType +
                        " stepName=" + stepName +
                        //" model=" + model +
-                       " experimentSN=" + experimentSN + 
+                       // " experimentSN=" + experimentSN +
+                       " labeled SR_SEN_Reserve or SR_SEN_Science " +
                        ", function=" + function);
     try {
       Map<String, Object> results = 
         myService.getFilepathsJH(travelerName, hardwareType, stepName,
-                              null, experimentSN);
+                                 null, experimentSN, labels);
       //             model, null);
       for (String cmp : results.keySet() ) {
         HashMap<String, Object> cmpResults =
@@ -547,14 +556,17 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     String appSuffix="-jrb";
     String htype = "boojum";
     String db="Raw";
-    System.out.println("\n Exercise getHardwareInstance for db=" + db +
+    HashSet<String> labels = new HashSet<String>();
+    labels.add("SnarkRandom:");
+    System.out.println("\n Exercise getHardwareInstances for db=" + db +
                        " and hardware type=" + htype);
+    System.out.println(" and group label wildcard 'SnarkRandom:' ");
     EtClientServices myService =
       new EtClientServices(db, null, prodServer, localServer, appSuffix);
 
     try {
       ArrayList<HashMap<String, Object> > results =
-        myService.getHardwareInstances(htype, null);
+        myService.getHardwareInstances(htype, null, labels);
       for (HashMap<String, Object> cmp : results) {
         System.out.println("\n Next component:");
         for (String key : cmp.keySet()) {
@@ -569,7 +581,8 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     }
   }
 
-  @Test
+  // Temporarily ignore
+  @Ignore   @Test
   public void testManualRun() throws UnsupportedEncodingException,
                                      EtClientException, IOException {
     boolean prodServer = false;
