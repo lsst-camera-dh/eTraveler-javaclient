@@ -160,8 +160,8 @@ public class EtClientServices  {
       args.put("stepName", stepName);
     }
     args.put("function", "getRunResults");
-    HashMap<String, Object> results =
-      (HashMap<String, Object>) m_client.execute("getResults", args);
+    Map<String, Object> results =
+      (Map<String, Object>) m_client.execute("getResults", args);
     return (HashMap<String, Object>) consumeAck(results).get("results");
   }
 
@@ -515,6 +515,40 @@ public class EtClientServices  {
     return (ArrayList<HashMap<String, Object> > )
       consumeAck(results).get("results");
   }
+  /**
+   * Return information about runs executed on a particular component.  Optionally
+   * filter by traveler name
+   * @param hardwareType (String)  required non-null
+   * @param experimentSN (String) required non-null
+   * @param travelerName (String) if null, return info for all travelers
+   * @return Map indexed by rootActivityId.  Value for each key is another map
+   *          containing information pertaining to that run  
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
+  public Map<Integer, Object> getComponentRuns(String hardwareType, String experimentSN,
+                                               String travelerName)  
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    HashMap<String, Object> args = new HashMap<String, Object> ();
+    args.put("hardwareType", hardwareType);
+    args.put("experimentSN", experimentSN);
+    if (travelerName != null) {
+      args.put("travelerName", travelerName);
+    }
+    args.put("function", "getComponentRuns");    
+    Map<String, Object> results =
+      (Map<String, Object>) m_client.execute("getResults", args);
+    Map<String, Object> justResults =
+      (Map<String, Object>) consumeAck(results).get("results");
+
+    // Now make a map with Integer keys out of this
+    HashMap<Integer, Object> intKeyMap = new HashMap<>();
+    for (String k : justResults.keySet()) {
+      intKeyMap.put(new Integer(k), justResults.get(k));
+    }
+    return intKeyMap;
+  }
 
   /**
    * Return information about manual inputs for the specified run
@@ -598,8 +632,7 @@ public class EtClientServices  {
     }
     HashMap<String, Object> results =
       (HashMap<String, Object>) m_client.execute("getResults", args);
-    return (HashMap<String, Object> )
-      consumeAck(results).get("results");
+    return (HashMap<String, Object> ) consumeAck(results).get("results");
   }
 
   private Map<String, Object> consumeAck(Map<String, Object> results)

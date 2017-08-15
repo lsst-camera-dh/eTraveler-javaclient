@@ -131,8 +131,7 @@ public class TestEtClientServices {
     }
   }
   
-  // Temporarily ignore
-  @Ignore   @Test
+  @Test
   public void testGetRunResults() 
     throws UnsupportedEncodingException, EtClientException, IOException {
     System.out.println("\n\nRunning testGetRunResults");
@@ -163,8 +162,7 @@ public class TestEtClientServices {
     }
   }
 
-  // Temporarily ignore
-  @Ignore   @Test
+  @Test
   public void testGetRunSchemaResults() 
     throws UnsupportedEncodingException, EtClientException, IOException {
     boolean prodServer=false;
@@ -195,8 +193,7 @@ public class TestEtClientServices {
     }
   }
   
-  // Temporarily ignore
-  @Ignore   @Test
+  @Test
   public void testGetResultsJH() 
     throws UnsupportedEncodingException, EtClientException, IOException {
     boolean prodServer=false;
@@ -238,8 +235,7 @@ public class TestEtClientServices {
     }
   }
   
-  // Temporarily ignore
-  @Ignore   @Test
+  @Test
   public void testGetResultsJH_filter() 
     throws UnsupportedEncodingException, EtClientException, IOException {
     boolean prodServer=false;
@@ -413,8 +409,7 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     }
   }
   
-  // Temporarily ignore
-  @Ignore   @Test
+  @Test
   public void testDataServer() 
   throws UnsupportedEncodingException, EtClientException, IOException {
     System.out.println("\n\nRunning testDataServer");
@@ -581,8 +576,68 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     }
   }
 
-  // Temporarily ignore
-  @Ignore   @Test
+  @Test
+  public void testComponentRuns() throws UnsupportedEncodingException,
+                                         EtClientException, IOException {
+    boolean prodServer = false;
+    boolean localServer = false;
+    String appSuffix="-jrb";
+    String htype = "ITL-CCD";
+    String expSN = "ITL-3800C-021";
+    String travelerName="SR-EOT-1";
+    String db="Prod";
+
+
+    System.out.println("\n Exercise getComponentRuns for db=" + db +
+                       " and hardware type=" + htype + " component " + expSN);
+    EtClientServices myService =
+      new EtClientServices(db, null, prodServer, localServer, appSuffix);
+
+
+    try {
+      Map<Integer, Object> results =
+        myService.getComponentRuns(htype, expSN,null);
+      for (Integer raid : results.keySet() ) {
+        System.out.println("\n For run with raid " + raid);
+        HashMap<String, Object> runInfo = (HashMap<String, Object>) results.get(raid);
+        for (String key : runInfo.keySet()) {
+          System.out.println(key + ":" + runInfo.get(key));
+        }
+      }
+    } catch (Exception ex) {
+      System.out.println("Post failed with message " + ex.getMessage());
+      throw new EtClientException(ex.getMessage());
+    } finally {
+      myService.close();
+    }
+
+    
+    // Now do the same with travelerName arg
+    System.out.println("\n Exercise getComponentRuns for db=" + db +
+                       " and hardware type=" + htype + " component " + expSN
+                       + " and traveler name=" + travelerName);
+    myService = new EtClientServices(db, null, prodServer, localServer, appSuffix);
+    
+    try {
+      Map<Integer, Object> results =
+        myService.getComponentRuns(htype, expSN, travelerName);
+      for (Integer raid : results.keySet() ) {
+        System.out.println("\n For run with raid " + raid);
+        HashMap<String, Object> runInfo = (HashMap<String, Object>) results.get(raid);
+        for (String key : runInfo.keySet()) {
+          System.out.println(key + ":" + runInfo.get(key));
+        }
+      }
+    } catch (Exception ex) {
+      System.out.println("Post failed with message " + ex.getMessage());
+      throw new EtClientException(ex.getMessage());
+    } finally {
+      myService.close();
+    }
+  }
+          
+    
+  @Test
   public void testManualRun() throws UnsupportedEncodingException,
                                      EtClientException, IOException {
     boolean prodServer = false;
