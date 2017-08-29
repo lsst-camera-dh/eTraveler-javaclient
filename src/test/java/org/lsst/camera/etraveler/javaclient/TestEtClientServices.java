@@ -653,13 +653,75 @@ throws UnsupportedEncodingException, EtClientException, IOException {
 
     try {
       HashMap<String, Object> results =
-        myService.getManualRunResults(run);
+        myService.getManualRunResults(run, null);
       for (String key : results.keySet()) {
         if (!key.equals("steps")) {   // general run info
           System.out.println(key + ":" + results.get(key));
         }
       }
-      printManualSteps((HashMap<String, Object>) results.get("steps"));
+      printManualSteps((HashMap<String, Object>) results.get("steps"), false);
+    } catch (Exception ex) {
+      System.out.println("Post failed with message " + ex.getMessage());
+      throw new EtClientException(ex.getMessage());
+    } finally {
+      myService.close();
+    }
+  }
+
+  @Test
+  public void testManualRunFilepaths() throws UnsupportedEncodingException,
+                                              EtClientException, IOException {
+    boolean prodServer = false;
+    boolean localServer = false;
+    String appSuffix="-jrb";
+    //String run = "4276D";
+    int run = 4864;
+    String db="Prod";
+    System.out.println("\n Exercise getManualRunFilepathss for db=" + db +
+                       " and run=" + run);
+    EtClientServices myService =
+      new EtClientServices(db, null, prodServer, localServer, appSuffix);
+
+    try {
+      HashMap<String, Object> results =
+        myService.getManualRunFilepaths(run, null);
+      for (String key : results.keySet()) {
+        if (!key.equals("steps")) {   // general run info
+          System.out.println(key + ":" + results.get(key));
+        }
+      }
+      printManualSteps((HashMap<String, Object>) results.get("steps"), false);
+    } catch (Exception ex) {
+      System.out.println("Post failed with message " + ex.getMessage());
+      throw new EtClientException(ex.getMessage());
+    } finally {
+      myService.close();
+    }
+  }
+
+  @Test
+  public void testManualRunSignatures() throws UnsupportedEncodingException,
+                                               EtClientException, IOException {
+    boolean prodServer = false;
+    boolean localServer = false;
+    String appSuffix="-jrb";
+    //String run = "4276D";
+    int run = 4955;
+    String db="Prod";
+    System.out.println("\n Exercise getManualRunSignatures for db=" + db +
+                       " and run=" + run);
+    EtClientServices myService =
+      new EtClientServices(db, null, prodServer, localServer, appSuffix);
+
+    try {
+      HashMap<String, Object> results =
+        myService.getManualRunSignatures(run, null);
+      for (String key : results.keySet()) {
+        if (!key.equals("steps")) {   // general run info
+          System.out.println(key + ":" + results.get(key));
+        }
+      }
+      printManualSteps((HashMap<String, Object>) results.get("steps"), true);
     } catch (Exception ex) {
       System.out.println("Post failed with message " + ex.getMessage());
       throw new EtClientException(ex.getMessage());
@@ -687,7 +749,7 @@ throws UnsupportedEncodingException, EtClientException, IOException {
 
     try {
       HashMap<String, Object> results =
-        myService.getManualResultsStep(traveler, stepName, htype, null, null);
+        myService.getManualResultsStep(traveler, stepName, htype, null, null, null);
       for (String expSN : results.keySet()) {
         HashMap<String, Object> expData = (HashMap<String, Object>)
           results.get(expSN);
@@ -697,7 +759,7 @@ throws UnsupportedEncodingException, EtClientException, IOException {
             System.out.println(key + ":" + expData.get(key));
           }
         }
-        printManualSteps((HashMap<String, Object>) expData.get("steps"));
+        printManualSteps((HashMap<String, Object>) expData.get("steps"), false);
       }
     } catch (Exception ex) {
       System.out.println("Post failed with message " + ex.getMessage());
@@ -707,7 +769,88 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     }
   }
 
-  
+  /* xx */
+  @Test
+  public void testManualFilepathsStep() throws UnsupportedEncodingException,
+                                               EtClientException, IOException {
+    boolean prodServer = false;
+    boolean localServer = false;
+    String appSuffix="-jrb";
+    String traveler="SR-RSA-ASY-02";
+    String stepName="SR-RSA-ASY-02_Analyze-Data-Run1";
+    String htype="LCA-10753_RSA";
+
+    String db="Prod";
+    System.out.println("\n Exercise getManualFilepathsStep for db=" + db +
+                       ", traveler=" + traveler + ", step=" + stepName
+                       + " and hardware type=" + htype);
+    EtClientServices myService =
+      new EtClientServices(db, null, prodServer, localServer, appSuffix);
+
+    try {
+      HashMap<String, Object> results =
+        myService.getManualFilepathsStep(traveler, stepName, htype,
+                                         null, null, null);
+      for (String expSN : results.keySet()) {
+        HashMap<String, Object> expData = (HashMap<String, Object>)
+          results.get(expSN);
+        System.out.println("\n\nFor component " + expSN);
+        for (String key : expData.keySet()) {
+          if (!key.equals("steps")) {   // general run info
+            System.out.println(key + ":" + expData.get(key));
+          }
+        }
+        printManualSteps((HashMap<String, Object>) expData.get("steps"), false);
+      }
+    } catch (Exception ex) {
+      System.out.println("Post failed with message " + ex.getMessage());
+      throw new EtClientException(ex.getMessage());
+    } finally {
+      myService.close();
+    }
+  }
+
+  @Test
+  public void testManualSignaturesStep() throws UnsupportedEncodingException,
+                                                EtClientException, IOException {
+    boolean prodServer = false;
+    boolean localServer = false;
+    String appSuffix="-jrb";
+    String traveler="NCR";
+    String stepName="NCR_C_Final_disposition";
+    String htype="e2v-CCD";
+
+    String db="Prod";
+    System.out.println("\n Exercise getManualSignaturesStep for db=" + db +
+                       ", traveler=" + traveler + ", step=" + stepName
+                       + " and hardware type=" + htype);
+    EtClientServices myService =
+      new EtClientServices(db, null, prodServer, localServer, appSuffix);
+
+    try {
+      HashMap<String, Object> results =
+        myService.getManualSignaturesStep(traveler, stepName, htype,
+                                          null, null, null);
+      for (String expSN : results.keySet()) {
+        HashMap<String, Object> expData = (HashMap<String, Object>)
+          results.get(expSN);
+        System.out.println("\n\nFor component " + expSN);
+        for (String key : expData.keySet()) {
+          if (!key.equals("steps")) {   // general run info
+            System.out.println(key + ":" + expData.get(key));
+          }
+        }
+        printManualSteps((HashMap<String, Object>) expData.get("steps"), true);
+      }
+    } catch (Exception ex) {
+      System.out.println("Post failed with message " + ex.getMessage());
+      throw new EtClientException(ex.getMessage());
+    } finally {
+      myService.close();
+    }
+  }
+
+  /* yy */
   private static void outputRun(Map<String, Object> results ) {
        System.out.println("Outer map has following non-instance key/value pairs");
     for (String k : results.keySet() ) {
@@ -750,13 +893,15 @@ throws UnsupportedEncodingException, EtClientException, IOException {
       System.out.println(" ");
     }
   }
-  private static void printManualSteps(Map<String, Object> steps) {
+  private static void printManualSteps(Map<String, Object> steps,
+                                       boolean signatures) {
     for (String step : steps.keySet()) {
       System.out.println("Step name: " + step);
       HashMap<String, Object> inputs =
         (HashMap<String, Object>) steps.get(step);
       for (String iName : inputs.keySet()) {
-        System.out.println("Input name: " + iName);
+        if (signatures) System.out.println("Signer request: " + iName);
+        else System.out.println("Input name: " + iName);
         HashMap<String, Object> input =
           (HashMap<String, Object>) inputs.get(iName);
         for (String k : input.keySet() ) {

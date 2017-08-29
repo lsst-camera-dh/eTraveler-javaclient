@@ -499,7 +499,7 @@ public class EtClientServices  {
    */
   public ArrayList<HashMap<String, Object> >
     getHardwareInstances(String hardwareType, String experimentSN,
-                         Set<String> hardwareLabels)
+                          Set<String> hardwareLabels)
     throws UnsupportedEncodingException, IOException, EtClientException {
     HashMap<String, Object> args = new HashMap<String, Object> ();
     args.put("hardwareType", hardwareType);
@@ -567,11 +567,13 @@ public class EtClientServices  {
    * @throws IOException
    * @throws EtClientException 
    */
-  public HashMap<String, Object>  getManualRunResults(String run)
+  public HashMap<String, Object>
+    getManualRunResults(String run, String stepName)
     throws UnsupportedEncodingException, IOException, EtClientException {
     HashMap<String, Object> args = new HashMap<String, Object> ();
     args.put("run", run);
-    args.put("function", "getManualRunResults");    
+    args.put("function", "getManualRunResults");
+    if (stepName != null) args.put("stepName", stepName);
     HashMap<String, Object> results =
       (HashMap<String, Object>) m_client.execute("getResults", args);
     return (HashMap<String, Object> )
@@ -581,6 +583,7 @@ public class EtClientServices  {
   /**
    * Return information about manual inputs for the specified run
    * @param run  (int)
+   * @param stepName (String) Restrict to specified step.  null for all
    * @return map with scalar values for information about the run
    *         overall (traveler name, traveler version, hardware type,
    *         experimentSN, subsystem, run number, begin and end times,
@@ -595,21 +598,125 @@ public class EtClientServices  {
    * @throws IOException
    * @throws EtClientException 
    */
-  public HashMap<String, Object>  getManualRunResults(int run)
+  public HashMap<String, Object>  getManualRunResults(int run, String stepName)
     throws UnsupportedEncodingException, IOException, EtClientException {
     Integer iRun = new Integer(run);
-    return getManualRunResults(iRun.toString());
+    return getManualRunResults(iRun.toString(), stepName);
+  }
+
+  /**
+   * Return information about manual filepath inputs for the specified run
+   * @param run  (String)
+   * @param stepName (String) Restrict to specified step.  null for all
+   * @return map with scalar values for information about the run
+   *         overall (traveler name, traveler version, hardware type,
+   *         experimentSN, subsystem, run number, begin and end times,
+   *         run status) and the key 'steps' whose value is a map
+   *         keyed by step name.   Value for each step is again a 
+   *         map, keyed by manual input name.   And that value is
+   *         yet another map with keys activityId, virtualPath, catalogKey
+   *         and isOptional (0 for false, 1 for true).   
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
+  public HashMap<String, Object>
+    getManualRunFilepaths(String run, String stepName)
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    HashMap<String, Object> args = new HashMap<String, Object> ();
+    args.put("run", run);
+    args.put("function", "getManualRunFilepaths");
+    if (stepName != null) args.put("stepName", stepName);
+    HashMap<String, Object> results =
+      (HashMap<String, Object>) m_client.execute("getResults", args);
+    return (HashMap<String, Object> )
+      consumeAck(results).get("results");
+  }
+
+  /**
+   * Return information about manual filepath for the specified run
+   * @param run  (int)
+   * @param stepName (String) Restrict to specified step.  null for all
+   * @return map with scalar values for information about the run
+   *         overall (traveler name, traveler version, hardware type,
+   *         experimentSN, subsystem, run number, begin and end times,
+   *         run status) and the key 'steps' whose value is a map
+   *         keyed by step name.   Value for each step is again a 
+   *         map, keyed by manual input name.   And that value is
+   *         yet another map with keys virtualPath, catalogKey,
+   *         activity id and isOptional.
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
+  public HashMap<String, Object> getManualRunFilepaths(int run, String stepName)
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    Integer iRun = new Integer(run);
+    return getManualRunFilepaths(iRun.toString(), stepName);
+  }
+
+  /**
+   * Return information about signature inputs for the specified run
+   * @param run  (String)
+   * @param stepName (String) Restrict to specified step.  null for all
+   * @return map with scalar values for information about the run
+   *         overall (traveler name, traveler version, hardware type,
+   *         experimentSN, subsystem, run number, begin and end times,
+   *         run status) and the key 'steps' whose value is a map
+   *         keyed by step name.   Value for each step is again a 
+   *         map, keyed by signerRequest. Value for a signerRequest is
+   *         yet another map with keys activityId, inputPattern, 
+   *         signerValue, signerCOmment and signatureTS.
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
+  public HashMap<String, Object>
+    getManualRunSignatures(String run, String stepName)
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    HashMap<String, Object> args = new HashMap<String, Object> ();
+    args.put("run", run);
+    args.put("function", "getManualRunSignatures");
+    if (stepName != null) args.put("stepName", stepName);
+    HashMap<String, Object> results =
+      (HashMap<String, Object>) m_client.execute("getResults", args);
+    return (HashMap<String, Object> )
+      consumeAck(results).get("results");
+  }
+
+  /**
+   * Return information about signatures for the specified run
+   * @param run  (int)
+   * @param stepName (String) Restrict to specified step.  null for all
+   * @return map with scalar values for information about the run
+   *         overall (traveler name, traveler version, hardware type,
+   *         experimentSN, subsystem, run number, begin and end times,
+   *         run status) and the key 'steps' whose value is a map
+   *         keyed by step name.   Value for each step is again a 
+   *         map, keyed by signerRequest. Value for a signerRequest is
+   *         yet another map with keys activityId, inputPattern, 
+   *         signerValue, signerComment and signatureTS.
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
+  public HashMap<String, Object>
+    getManualRunSignatures(int run, String stepName)
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    Integer iRun = new Integer(run);
+    return getManualRunSignatures(iRun.toString(), stepName);
   }
 
   /**
    * Return information about manual inputs for specified traveler type,
-   * step within the traveler and hardware type.  May further qualify
-   * by model or experimentSN.  
+   * step within the traveler and hardware type.   May further
+   * qualify by model or experimentSN or list of hardware labels.  
    * @param  travelerName
    * @param  stepName
    * @param  hardwareType
    * @param  model (may be null)
    * @param  experimentSN (may be null)
+   * @param  hardwareLabels (set of strings used to filter; may be null)
    * @throws UnsupportedEncodingException
    * @throws IOException
    * @throws EtClientException 
@@ -617,7 +724,7 @@ public class EtClientServices  {
   public HashMap<String, Object>
     getManualResultsStep(String travelerName, String stepName,
                          String hardwareType, String model,
-                         String experimentSN)
+                         String experimentSN, Set<String> hardwareLabels)
     throws UnsupportedEncodingException, IOException, EtClientException {
     HashMap<String, Object> args = new HashMap<String, Object> ();
     args.put("function", "getManualResultsStep");
@@ -629,6 +736,85 @@ public class EtClientServices  {
     }
     if (experimentSN != null) {
       args.put("experimentSN", experimentSN);
+    }
+    if (hardwareLabels != null) {
+      args.put("hardwareLabels", hardwareLabels);
+    }
+    HashMap<String, Object> results =
+      (HashMap<String, Object>) m_client.execute("getResults", args);
+    return (HashMap<String, Object> ) consumeAck(results).get("results");
+  }
+
+  /* xxx */
+  /**
+   * Return information about manual filepath inputs for specified 
+   * traveler type, step within the traveler and hardware type.  
+   * May further qualify by model or experimentSN or list of hardware labels.  
+   * @param  travelerName
+   * @param  stepName
+   * @param  hardwareType
+   * @param  model (may be null)
+   * @param  experimentSN (may be null)
+   * @param  hardwareLabels (set of strings used to filter; may be null)
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
+  public HashMap<String, Object>
+    getManualFilepathsStep(String travelerName, String stepName,
+                           String hardwareType, String model,
+                           String experimentSN, Set<String> hardwareLabels)
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    HashMap<String, Object> args = new HashMap<String, Object> ();
+    args.put("function", "getManualFilepathsStep");
+    args.put("travelerName", travelerName);
+    args.put("stepName", stepName);
+    args.put("hardwareType", hardwareType);
+    if (model != null) {
+      args.put("model", model);
+    }
+    if (experimentSN != null) {
+      args.put("experimentSN", experimentSN);
+    }
+    if (hardwareLabels != null) {
+      args.put("hardwareLabels", hardwareLabels);
+    }
+    HashMap<String, Object> results =
+      (HashMap<String, Object>) m_client.execute("getResults", args);
+    return (HashMap<String, Object> ) consumeAck(results).get("results");
+  }
+  /**
+   * Return information about signature inputs for specified traveler type,
+   * step within the traveler and hardware type.  May further qualify
+   * by model, experimentSN, or set of hardware labels  
+   * @param  travelerName
+   * @param  stepName
+   * @param  hardwareType
+   * @param  model (may be null)
+   * @param  experimentSN (may be null)
+   * @param  hardwareLabels (set of strings used to filter; may be null)
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
+  public HashMap<String, Object>
+    getManualSignaturesStep(String travelerName, String stepName,
+                            String hardwareType, String model,
+                            String experimentSN, Set<String> hardwareLabels)
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    HashMap<String, Object> args = new HashMap<String, Object> ();
+    args.put("function", "getManualSignaturesStep");
+    args.put("travelerName", travelerName);
+    args.put("stepName", stepName);
+    args.put("hardwareType", hardwareType);
+    if (model != null) {
+      args.put("model", model);
+    }
+    if (experimentSN != null) {
+      args.put("experimentSN", experimentSN);
+    }
+    if (hardwareLabels != null) {
+      args.put("hardwareLabels", hardwareLabels);
     }
     HashMap<String, Object> results =
       (HashMap<String, Object>) m_client.execute("getResults", args);
