@@ -659,6 +659,8 @@ public class EtClientServices  {
    * Return information about signature inputs for the specified run
    * @param run  (String)
    * @param stepName (String) Restrict to specified step.  null for all
+   * @param activityStatus Array list of allowable activity status. If
+   *        null treated as list with single entry "success".
    * @return map with scalar values for information about the run
    *         overall (traveler name, traveler version, hardware type,
    *         experimentSN, subsystem, run number, begin and end times,
@@ -672,12 +674,14 @@ public class EtClientServices  {
    * @throws EtClientException 
    */
   public HashMap<String, Object>
-    getManualRunSignatures(String run, String stepName)
+    getManualRunSignatures(String run, String stepName,
+                           ArrayList<String> activityStatus)
     throws UnsupportedEncodingException, IOException, EtClientException {
     HashMap<String, Object> args = new HashMap<String, Object> ();
     args.put("run", run);
     args.put("function", "getManualRunSignatures");
     if (stepName != null) args.put("stepName", stepName);
+    if (activityStatus != null) args.put("activityStatus", activityStatus);
     HashMap<String, Object> results =
       (HashMap<String, Object>) m_client.execute("getResults", args);
     return (HashMap<String, Object> )
@@ -696,15 +700,18 @@ public class EtClientServices  {
    *         map, keyed by signerRequest. Value for a signerRequest is
    *         yet another map with keys activityId, inputPattern, 
    *         signerValue, signerComment and signatureTS.
+   * @param activityStatus Array list of allowable activity status. If
+   *        null treated as list with single entry "success".
    * @throws UnsupportedEncodingException
    * @throws IOException
    * @throws EtClientException 
    */
   public HashMap<String, Object>
-    getManualRunSignatures(int run, String stepName)
+    getManualRunSignatures(int run, String stepName,
+                           ArrayList<String> activityStatus)
     throws UnsupportedEncodingException, IOException, EtClientException {
     Integer iRun = new Integer(run);
-    return getManualRunSignatures(iRun.toString(), stepName);
+    return getManualRunSignatures(iRun.toString(), stepName, activityStatus);
   }
 
   /**
@@ -793,6 +800,8 @@ public class EtClientServices  {
    * @param  model (may be null)
    * @param  experimentSN (may be null)
    * @param  hardwareLabels (set of strings used to filter; may be null)
+   * @param activityStatus Array list of allowable activity status. If
+   *        null treated as list with single entry "success".
    * @throws UnsupportedEncodingException
    * @throws IOException
    * @throws EtClientException 
@@ -800,7 +809,8 @@ public class EtClientServices  {
   public HashMap<String, Object>
     getManualSignaturesStep(String travelerName, String stepName,
                             String hardwareType, String model,
-                            String experimentSN, Set<String> hardwareLabels)
+                            String experimentSN, Set<String> hardwareLabels,
+                            ArrayList<String> activityStatus)
     throws UnsupportedEncodingException, IOException, EtClientException {
     HashMap<String, Object> args = new HashMap<String, Object> ();
     args.put("function", "getManualSignaturesStep");
@@ -815,6 +825,9 @@ public class EtClientServices  {
     }
     if (hardwareLabels != null) {
       args.put("hardwareLabels", hardwareLabels);
+    }
+    if (activityStatus != null) {
+      args.put("activityStatus", activityStatus);
     }
     HashMap<String, Object> results =
       (HashMap<String, Object>) m_client.execute("getResults", args);
