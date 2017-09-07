@@ -706,7 +706,11 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     boolean localServer = false;
     String appSuffix="-jrb";
     //String run = "4276D";
-    int run = 4955;
+    //int run = 4955;
+    int run = 5108;
+    ArrayList<String> statuses = new ArrayList<>();
+    statuses.add("success");
+    statuses.add("inProgress");
     String db="Prod";
     System.out.println("\n Exercise getManualRunSignatures for db=" + db +
                        " and run=" + run);
@@ -715,7 +719,7 @@ throws UnsupportedEncodingException, EtClientException, IOException {
 
     try {
       HashMap<String, Object> results =
-        myService.getManualRunSignatures(run, null);
+        myService.getManualRunSignatures(run, null, statuses);
       for (String key : results.keySet()) {
         if (!key.equals("steps")) {   // general run info
           System.out.println(key + ":" + results.get(key));
@@ -819,6 +823,9 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     String traveler="NCR";
     String stepName="NCR_C_Final_disposition";
     String htype="e2v-CCD";
+    ArrayList<String> statuses = new ArrayList<>();
+    statuses.add("success");
+    
 
     String db="Prod";
     System.out.println("\n Exercise getManualSignaturesStep for db=" + db +
@@ -830,7 +837,7 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     try {
       HashMap<String, Object> results =
         myService.getManualSignaturesStep(traveler, stepName, htype,
-                                          null, null, null);
+                                          null, null, null, statuses);
       for (String expSN : results.keySet()) {
         HashMap<String, Object> expData = (HashMap<String, Object>)
           results.get(expSN);
