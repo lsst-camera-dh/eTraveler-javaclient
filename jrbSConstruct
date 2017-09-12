@@ -1,0 +1,119 @@
+# -*- python -*-
+import os
+import os.path
+import sys
+import Rtems
+#import gitinfo
+
+# Set up base environment with common features, such as path to
+# root of install area
+
+
+# Pick up only what we need from caller's environment
+baseEnv = Environment()
+
+AddOption('--githash', dest='githash', action='store', type='string',
+          help='Should be git hash for current commit')
+AddOption('--gitdirty', dest='gitdirty', action='store', type='int',
+          help='Should be 0 if local repo is clean, else int > 0')
+
+
+if not baseEnv.GetOption('help'):
+    Import('baseInit')
+    baseInit(baseEnv)
+
+    if baseEnv.GetOption('githash'):
+        baseEnv['GIT_HASH'] = baseEnv.GetOption('githash')
+        hashdefsym = '-Wl,-defsym,GIT_HASH=0x' + str(baseEnv['GIT_HASH'])[0:7]
+        baseEnv['GIT_HASH_DEFSYM'] = hashdefsym
+        
+    if baseEnv.GetOption('gitdirty'):
+        baseEnv['GIT_DIRTY'] = baseEnv.GetOption('gitdirty')
+        dirtydefsym = '-Wl,-defsym,GIT_DIRTY=' + "{0:#x}".format(int(baseEnv['GIT_DIRTY']))
+        baseEnv['GIT_DIRTY_DEFSYM'] = dirtydefsym
+
+    exportRoot = baseEnv['EXPORT_ROOT']
+    x86Env = baseEnv.Clone()
+    x86Env['so_prefix'] = 'daq_'
+    #First do the stuff common to 64-bit and 32-bit
+    x86Env.Append(CCFLAGS = ['-g'] )
+    x86Env.Append(SHLINKFLAGS = ["-Wl,-soname=${TARGET.file}"])
+    x86Env.Append(RPATH=x86Env.Literal('\\$$ORIGIN') )
+    x86Env.Append(LIBS = ['rt'])
+    x86_32bitEnv = x86Env.Clone()
+
+    # This stuff is specific to 64-bit
+    x86Env.Append(LIBDIR = Dir(exportRoot).Dir('x86').Dir('lib'))
+    x86Env.Append(BINDIR = Dir(exportRoot).Dir('x86').Dir('bin'))
+    x86Env.Append(LIBPATH = [x86Env['LIBDIR']])
+    x86Env.Append(DOCDIR = Dir(exportRoot).Dir('x86').Dir('doc'))
+    # Need this at most for programs, not shareables
+    #x86Env.Append(LINKFLAGS = ["-Wl,-rpath-link=${LIBDIR}"])
+    x86Env['VARIANT'] = 'x86'
+
+    # Finish off 32-bit environment
+    x86_32bitEnv['VARIANT'] = 'x86_32bit'
+    x86_32bitEnv.Append(CCFLAGS = ['-m32'])
+    x86_32bitEnv.Append(LINKFLAGS = ['-m32'])
+    x86_32bitEnv.Append(LIBDIR = Dir(exportRoot).Dir('x86_32bit').Dir('lib'))
+    x86_32bitEnv.Append(BINDIR = Dir(exportRoot).Dir('x86_32bit').Dir('bin'))
+    x86_32bitEnv.Append(LIBPATH = [x86_32bitEnv['LIBDIR']])
+    x86_32bitEnv.Append(DOCDIR = Dir(exportRoot).Dir('x86-32bit').Dir('doc'))
+    # Need this at most for programs, not shareables
+    #x86_32bitEnv.Append(LINKFLAGS = ["-Wl,-rpath-link=${LIBDIR}"])
+
+
+    rtemsEnv = baseEnv.Clone()
+    rtemsEnv['VARIANT'] = 'rtems'
+    rtemsEnv['SONAMESPACE'] = 'daq'   # default; not correct for init
+
+    rtemsEnv['so_prefix'] = ''
+    rtemsEnv['RTEMS_SDK'] = os.environ['RTEMS_SDK']
+    #print 'RTEMS_SDK construction variable is ', rtemsEnv['RTEMS_SDK']
+
+    rtemssetup = Rtems.RtemsSetup(os.environ['RTEMS_SDK'], '4.11')
+
+# Add some stuff to PATH so that rtems compiler, etc. can be found
+# Set up link flags
+    rtemssetup.modifyEnv(rtemsEnv)
+
+# Note reference to script (shareable.ld) must follow -a, max-page-size..
+# No 'lib' prefix for rtems
+    rtemsEnv['SHLIBPREFIX'] = ''
+    rtemsEnv['SHOBJSUFFIX'] = '.o'
+    rtemsEnv.Append(LIBDIR = [Dir(exportRoot).Dir('rtems').Dir('loadable')])
+    rtemsEnv.Append(BINDIR = [Dir(exportRoot).Dir('rtems').Dir('loadable')])
+    rtemsEnv.Append(LIBPATH = [ Dir(rtemsEnv['LIBDIR'])])
+    rtemsEnv.Append(DOCDIR = Dir(exportRoot).Dir('rtems').Dir('doc'))
+    if 'RRI_SDK' in rtemsEnv:
+        rtemsEnv.Append(Libpath = [Dir('$RRI_SDK/build')])
+    rtemsEnv.Append(LIBPATH = [Dir('$RTEMS_SDK/lib'),
+                               Dir('${RTEMS_SDK}/tgt/rtems')] )
+    rtemsEnv.Append(LIBS = ['rtems', 'network'])
+    rtemsEnv['LIBLINKSUFFIX'] = '.so'
+    rtemsEnv['LIBLINKPREFIX'] = '-l:'
+
+    Export(['rtemsEnv', 'x86Env', 'x86_32bitEnv', 'rtemssetup'])
+
+# For now just make a list of subdirectories to be built, e.g.
+# to start
+# Later may get fancier and discover where SConscripts are
+    subs = ['release', 'init', 'linked', 'hash', 'net', 'osa', 'dsi', 'dsid', 'hks', 'rms']  
+
+    for sb in subs: 
+    # From SCons man pages:
+    # SConscript can use Dir('.').path to determine variant
+    # (and from that it knows which environment to Import
+        vdict = {'VARIANT' : 'x86'}
+        x86Env.SConscript(os.path.join(sb, 'SConscript'),
+                          variant_dir=os.path.join(sb, 'x86'), 
+                          exports='vdict' )
+        vdict = {'VARIANT' : 'x86_32bit'}
+        x86_32bitEnv.SConscript(os.path.join(sb, 'SConscript'),
+                                variant_dir=os.path.join(sb, 'x86_32bit'), 
+                                exports='vdict' )
+        #if sb != 'rms':
+        vdict = {'VARIANT' : 'rtems'}
+        rtemsEnv.SConscript(dirs=sb, variant_dir=os.path.join(sb,'rtems'),
+                            exports='vdict')
+
