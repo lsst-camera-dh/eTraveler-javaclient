@@ -834,6 +834,28 @@ public class EtClientServices  {
     return (HashMap<String, Object> ) consumeAck(results).get("results");
   }
 
+  /*  */
+  public HashMap<Integer, Object>
+    getMissingSignatures(ArrayList<String> activityStatus)
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    HashMap<String, Object> args = new HashMap<String, Object> ();
+    args.put("function", "getMissingSignatures");
+    if (activityStatus != null) {
+      args.put("activityStatus", activityStatus);
+    }
+    HashMap<String, Object> results =
+      (HashMap<String, Object>) m_client.execute("getResults", args);
+    Map<String,Object> justResults = (Map<String, Object>)
+      consumeAck(results).get("results");
+    // Now make a map with Integer keys out of this
+    HashMap<Integer, Object> intKeyMap = new HashMap<>();
+    for (String k : justResults.keySet()) {
+      intKeyMap.put(new Integer(k), justResults.get(k));
+    }
+    return intKeyMap;
+  }
+
+  /*   */
   private Map<String, Object> consumeAck(Map<String, Object> results)
     throws EtClientException {
     if (results.get("acknowledge") == null) {

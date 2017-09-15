@@ -857,7 +857,52 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     }
   }
 
-  /* yy */
+  @Test
+  public void testMissingSignatures()
+    throws UnsupportedEncodingException, EtClientException, IOException {
+    boolean prodServer = false;
+    boolean localServer = false;
+    String appSuffix="-jrb";
+
+    String db="Dev";
+    System.out.println("\n Exercise getMissingSignatures for db=" + db +
+                       ", no arguments");
+    EtClientServices myService =
+      new EtClientServices(db, null, prodServer, localServer, appSuffix);
+
+    try {
+      HashMap<Integer, Object> results =
+        myService.getMissingSignatures(null);
+      for (Integer hid: results.keySet()) {
+        HashMap<String, Object> expData = (HashMap<String, Object>)
+          results.get(hid);
+        System.out.println("\n\nFor component with id " + hid);
+        /* NOTE:  Following is  certainly not quite right. 
+               At the very least, printManualSteps won't do the
+               right thing since step data is an array list (of maps),
+               not a map
+         */
+        for (String run : expData.keySet()) {
+          System.out.println("\nFor run " + run);
+          HashMap<String, Object> runData =
+            (HashMap<String, Object>) expData.get(run);
+          for (String key : runData.keySet())  {
+            if (!key.equals("steps")) {   // general run info
+              System.out.println(key + ":" + runData.get(key));
+            }
+          }
+          printMissingSigs((HashMap<String, Object>) runData.get("steps"));
+        }
+      }
+    } catch (Exception ex) {
+      System.out.println("Post failed with message " + ex.getMessage());
+      throw new EtClientException(ex.getMessage());
+    } finally {
+      myService.close();
+    }
+  }
+
+
   private static void outputRun(Map<String, Object> results ) {
        System.out.println("Outer map has following non-instance key/value pairs");
     for (String k : results.keySet() ) {
@@ -913,6 +958,19 @@ throws UnsupportedEncodingException, EtClientException, IOException {
           (HashMap<String, Object>) inputs.get(iName);
         for (String k : input.keySet() ) {
           System.out.println("For key '" + k + "' value is: " + input.get(k));
+        }
+      }
+    }
+  }
+  private static void printMissingSigs(Map<String, Object> steps) {
+    for (String step : steps.keySet()) {
+      System.out.println("Step name: " + step);
+      ArrayList<Object> inputs =
+        (ArrayList<Object>) steps.get(step);
+      for (Object sigObj : inputs) {
+        HashMap<String, Object> sig = (HashMap<String, Object>) sigObj;
+        for (String k : sig.keySet() ) {
+          System.out.println("for key '" + k + "' value is: " + sig.get(k));
         }
       }
     }
