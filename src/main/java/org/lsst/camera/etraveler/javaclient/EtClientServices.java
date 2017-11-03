@@ -549,7 +549,42 @@ public class EtClientServices  {
     }
     return intKeyMap;
   }
-
+  /** 
+   * Return information about NCRs belonging to specified component 
+   * and optionally its ancestors or descendants.  May also ask
+   * for information about labels applied
+   * @param hardwareType (String)  required non-null
+   * @param experimentSN (String) required non-null
+   * @param items (String)  One of "this", "ancestors", "children"
+   * @param labelGroups (Set<String>) If non-null, NCR information
+   *        returned will include labels in any of specified groups
+   *        applied to the NCR
+   * @return ArrayList of maps, one per NCR.  keys in the map include
+   *         level (0 for specified component; positive integer for 
+   *         ancestors or descendants indicating distance from specified
+   *         component), hardware type, experimentSN,
+   *         hardware id, NCR number, Run number, NCR status and whether
+   *         it is final, current step name, and associated labels if
+   *         labelGroups argument is non-null.  The list is sorted
+   *         using the following keys in the maps in order:
+   *           level, hardwareType, experimentSN, NCRnumber
+  */
+  public ArrayList<Object> getHardwareNCRs(String hardwareType, String experimentSN, String items, Set<String> labelGroups)
+    throws UnsupportedEncodingException, IOException, EtClientException {    
+    HashMap<String, Object> args = new HashMap<String, Object> ();
+    args.put("hardwareType", hardwareType);
+    args.put("experimentSN", experimentSN);
+    args.put("items", items);
+    args.put("function", "getHardwareNCRs");    
+    if (labelGroups != null) {
+      args.put("ncrLabels", labelGroups);
+    }
+    HashMap<String, Object> results =
+      (HashMap<String, Object>) m_client.execute("getResults", args);
+    return (ArrayList<Object> )
+      consumeAck(results).get("results");
+  }
+  
   /**
    * Return information about manual inputs for the specified run
    * @param run  (String)
