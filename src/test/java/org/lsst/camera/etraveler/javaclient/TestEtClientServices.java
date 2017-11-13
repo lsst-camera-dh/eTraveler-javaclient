@@ -284,7 +284,7 @@ public class TestEtClientServices {
   }
   
   
-  // Take it for now. A lot of output
+  // Take it out for now. A lot of output
   @Ignore @Test
   public void testGetResultsJH_schema() 
     throws UnsupportedEncodingException, EtClientException, IOException {
@@ -328,7 +328,7 @@ public class TestEtClientServices {
     }
   }
   
-  // Don't need to run this regularly. Generates a log of output
+  // Don't need to run this regularly. Generates a lot of output
   @Ignore @Test
   public void TestGetRunFilepaths()
     throws UnsupportedEncodingException, EtClientException, IOException {
@@ -902,6 +902,49 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     }
   }
 
+  @Test
+  public void testGetHardwareNCRs()
+    throws UnsupportedEncodingException, EtClientException, IOException {
+    boolean prodServer = false;
+    boolean localServer = false;
+    String appSuffix="-jrb";
+    
+    String htype = "e2v-CCD";
+    String expSN = "E2V-CCD250-239";
+    String items="ancestors";
+    String db="Prod";
+    HashSet<String> labels=null;
+
+    labels = new HashSet<String>();
+    labels.add("Mistake");
+    
+    System.out.println("\n Exercise getHardwareNCRs for db=" + db +
+                       ", hardware type=" + htype + " component " + expSN +
+                       " and items=" + items);
+    if (labels != null) {
+      for (String grp : labels) {
+        System.out.print(grp + " ");
+      }
+      System.out.println("\n");
+    }
+    EtClientServices myService =
+      new EtClientServices(db, null, prodServer, localServer, appSuffix);
+
+    ArrayList<Object> results =  null;
+
+    try {
+      results = myService.getHardwareNCRs(htype, expSN, items, labels);
+    } catch (Exception ex) {
+      System.out.println("Post failed with message " + ex.getMessage());
+      throw new EtClientException(ex.getMessage());
+    } finally {
+      myService.close();
+    }
+    
+    for (Object ncr : results) {
+      outputNcrInfo(ncr);
+    }
+  }
 
   private static void outputRun(Map<String, Object> results ) {
        System.out.println("Outer map has following non-instance key/value pairs");
@@ -973,6 +1016,23 @@ throws UnsupportedEncodingException, EtClientException, IOException {
           System.out.println("for key '" + k + "' value is: " + sig.get(k));
         }
       }
+    }
+  }
+  private static void outputNcrInfo(Object ncrInfo) {
+    HashMap<String, Object> ncr = (HashMap<String, Object>) ncrInfo;
+
+    System.out.println("\nlevel: " + ncr.get("level").toString());
+    System.out.println("Hardware type: " + ncr.get("hardwareType").toString());
+    System.out.println("experimentSN: " + ncr.get("experimentSN").toString());
+    System.out.println("NCR number: " + ncr.get("NCRnumber").toString());
+    Set<String> remainingKeys = ncr.keySet();
+    remainingKeys.remove("level");
+    remainingKeys.remove("hardwareType");
+    remainingKeys.remove("experimentSN");
+    remainingKeys.remove("NCRnumber");
+    
+    for (String k : remainingKeys ) {
+      System.out.println("Value for key " + k + "=" + ncr.get(k).toString());
     }
   }
 }
