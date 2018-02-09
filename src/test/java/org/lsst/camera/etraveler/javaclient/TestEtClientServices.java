@@ -548,7 +548,8 @@ throws UnsupportedEncodingException, EtClientException, IOException {
                                         EtClientException, IOException {
     boolean prodServer = false;
     boolean localServer = false;
-    String appSuffix="-jrb";
+    //String appSuffix="-jrb";
+    String appSuffix="";
     String htype = "boojum";
     String db="Raw";
     HashSet<String> labels = new HashSet<String>();
@@ -595,8 +596,11 @@ throws UnsupportedEncodingException, EtClientException, IOException {
 
 
     try {
+      ArrayList<String> runStatus = new ArrayList< > ();
+      runStatus.add("success");
+      runStatus.add("paused");
       Map<Integer, Object> results =
-        myService.getComponentRuns(htype, expSN,null);
+        myService.getComponentRuns(htype, expSN,null, runStatus);
       for (Integer raid : results.keySet() ) {
         System.out.println("\n For run with raid " + raid);
         HashMap<String, Object> runInfo = (HashMap<String, Object>) results.get(raid);
@@ -740,20 +744,24 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     boolean prodServer = false;
     boolean localServer = false;
     String appSuffix="-jrb";
-    String traveler="InputTraveler";
-    String stepName="hasInputs";
-    String htype="boojum";
+    String traveler="SR-GEN-RCV-02";  // InputTraveler";
+    String stepName="SR-RCV-02_Shipping_Documenation"; //hasInputs";
+    String htype="ITL-CCD";  //"boojum";
 
-    String db="Raw";
+    String db="Prod";//"Raw";
     System.out.println("\n Exercise getManualResultsStep for db=" + db +
                        ", traveler=" + traveler + ", step=" + stepName
                        + " and hardware type=" + htype);
+    ArrayList<String> runStatus = new ArrayList<>();
+    runStatus.add("inProgress");
+    runStatus.add("paused");
     EtClientServices myService =
       new EtClientServices(db, null, prodServer, localServer, appSuffix);
 
     try {
       HashMap<String, Object> results =
-        myService.getManualResultsStep(traveler, stepName, htype, null, null, null);
+        myService.getManualResultsStep(traveler, stepName, htype, null, null, 
+          null, runStatus);
       for (String expSN : results.keySet()) {
         HashMap<String, Object> expData = (HashMap<String, Object>)
           results.get(expSN);
@@ -763,7 +771,8 @@ throws UnsupportedEncodingException, EtClientException, IOException {
             System.out.println(key + ":" + expData.get(key));
           }
         }
-        printManualSteps((HashMap<String, Object>) expData.get("steps"), false);
+        // Temporarily comment out details in output
+        //printManualSteps((HashMap<String, Object>) expData.get("steps"), false);
       }
     } catch (Exception ex) {
       System.out.println("Post failed with message " + ex.getMessage());
@@ -783,6 +792,8 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     String traveler="SR-RSA-ASY-02";
     String stepName="SR-RSA-ASY-02_Analyze-Data-Run1";
     String htype="LCA-10753_RSA";
+    ArrayList<String> runStatus = new ArrayList<>();
+    runStatus.add("success");
 
     String db="Prod";
     System.out.println("\n Exercise getManualFilepathsStep for db=" + db +
@@ -794,7 +805,7 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     try {
       HashMap<String, Object> results =
         myService.getManualFilepathsStep(traveler, stepName, htype,
-                                         null, null, null);
+                                         null, null, null, runStatus);
       for (String expSN : results.keySet()) {
         HashMap<String, Object> expData = (HashMap<String, Object>)
           results.get(expSN);
@@ -804,7 +815,8 @@ throws UnsupportedEncodingException, EtClientException, IOException {
             System.out.println(key + ":" + expData.get(key));
           }
         }
-        printManualSteps((HashMap<String, Object>) expData.get("steps"), false);
+        // For now comment out detailed output
+        //printManualSteps((HashMap<String, Object>) expData.get("steps"), false);
       }
     } catch (Exception ex) {
       System.out.println("Post failed with message " + ex.getMessage());
