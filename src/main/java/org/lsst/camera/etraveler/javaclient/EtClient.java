@@ -134,9 +134,10 @@ public class EtClient {
       }
     } else {
       if (command.equals("openSesame")) {
-        url += (m_appSuffix+"/exp/LSST-CAMERA/" + m_db + openSesameUrl);
+        url += (m_appSuffix+"/exp/" + m_exp + "/" + m_db + openSesameUrl);
       } else {
-        url += (m_appSuffix+"/exp/LSST-CAMERA/" + m_db + "/Results/" + command);
+        url += (m_appSuffix+"/exp/" + m_exp + "/" + m_db + "/Results/"
+                + command);
       }
     }
     return url;
