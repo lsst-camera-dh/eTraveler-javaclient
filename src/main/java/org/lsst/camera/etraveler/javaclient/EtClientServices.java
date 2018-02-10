@@ -1253,8 +1253,12 @@ public class EtClientServices implements AutoCloseable  {
       results.remove("acknowledge");
       return results;
     } else {
-      throw new EtClientException("Operation failed with error: " +
-                                  results.get("acknowledge").toString());
+      String ack =  results.get("acknowledge").toString();
+      if (ack.indexOf("NoDataException") > -1) {
+        throw new EtClientNoDataException("Operation failed with error: " +
+                                          ack);
+      }
+      throw new EtClientException("Operation failed with error: " + ack);
     }
   }
 
