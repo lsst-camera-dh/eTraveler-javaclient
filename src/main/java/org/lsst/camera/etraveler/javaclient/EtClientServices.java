@@ -15,7 +15,7 @@ import org.lsst.camera.etraveler.javaclient.utils.RunUtils;
  * retrieve database entries
  * @author jrb
  */
-public class EtClientServices  {
+public class EtClientServices implements AutoCloseable  {
   private EtClient m_client=null;
   private String m_operator = "read_only";
   private String m_appSuffix="";
@@ -1259,7 +1259,11 @@ public class EtClientServices  {
   }
 
   public void close() throws IOException {
+    //try {
     m_client.close();
     m_client = null;
+    //} catch (IOException ex) {
+    //throw new Exception(ex);
+    //}
   }
 }

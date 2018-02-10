@@ -46,6 +46,7 @@ public class EtClient {
   private boolean m_prodServer=true;
   private boolean m_localServer=false;
   private String m_appSuffix="";
+  private boolean m_getDone=false;
   private CloseableHttpClient m_httpclient = null;
   
   private static final String s_prodURL = "http://lsst-camera.slac.stanford.edu/eTraveler";
@@ -118,6 +119,7 @@ public class EtClient {
   private void createClient() {
     m_httpclient =
       HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
+    
   }
   
   private String formURL(String command)  {
@@ -158,17 +160,21 @@ public class EtClient {
                                      HashMap<String, Object> args)
   throws JsonProcessingException, UnsupportedEncodingException,
          EtClientException, IOException {
-    if (m_httpclient == null) createClient();
-
-    // First send an innocuous GET
-
-    String openSesameUrl = formURL("openSesame");
-    String commandUrl = formURL(command);
-    if (!m_prodServer) {
-      System.out.println("Using open sesame URL " + openSesameUrl);
-      HttpGet httpget = new HttpGet(openSesameUrl);
-      m_httpclient.execute(httpget);
+    if (m_httpclient == null) {
+      createClient();
     }
+    if (!m_getDone) {
+      if (!m_prodServer) {
+        // First send an innocuous GET
+        String openSesameUrl = formURL("openSesame");
+        System.out.println("Using open sesame URL " + openSesameUrl);
+        HttpGet httpget = new HttpGet(openSesameUrl);
+        m_httpclient.execute(httpget);
+      }
+      m_getDone = true;
+    }
+
+    String commandUrl = formURL(command);
     MyResponseHandler hand = new MyResponseHandler();
     System.out.println("Using command URL " + commandUrl);
     HttpPost httppost = new HttpPost(commandUrl);
