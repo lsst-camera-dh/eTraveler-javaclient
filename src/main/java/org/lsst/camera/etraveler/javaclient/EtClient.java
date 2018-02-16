@@ -49,11 +49,11 @@ public class EtClient {
   private boolean m_getDone=false;
   private CloseableHttpClient m_httpclient = null;
   
-  private static final String s_prodURL = "http://lsst-camera.slac.stanford.edu/eTraveler";
-  private static final String s_devURL = "http://lsst-camera-dev.slac.stanford.edu/eTraveler";
+  private static final String s_prodURL = "https://lsst-camera.slac.stanford.edu/eTraveler";
+  private static final String s_devURL = "https://lsst-camera-dev.slac.stanford.edu/eTraveler";
   ///private static final String s_devURL = "http://lsst-camera-dev.slac.stanford.edu/eTraveler-jrb/exp/LSST-CAMERA";
 
-  private static final String s_localURL = "http://localhost:8084/eTraveler";
+  private static final String s_localURL = "https://localhost:8084/eTraveler";
 
   private class MyResponseHandler implements ResponseHandler< Map<String, Object > > {
     public Map<String, Object> handleResponse(final HttpResponse response) throws
