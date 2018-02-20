@@ -58,10 +58,8 @@ public class EtClient {
   private class MyResponseHandler implements ResponseHandler< Map<String, Object > > {
     public Map<String, Object> handleResponse(final HttpResponse response) throws
       ClientProtocolException, IOException {
-      //System.out.println("Inside handleResponse\n");
       int status = response.getStatusLine().getStatusCode();
-      //System.out.println("Returned response was ");
-      //System.out.println(status);
+
       if (status >= 200 && status < 305) {
         HttpEntity entity = response.getEntity();
         if (entity == null) return null;
@@ -127,7 +125,7 @@ public class EtClient {
     String openSesameUrl = "/error.html.jsp?message=Priming+pump+for+POST";
     if (!m_prodServer) url = s_devURL;
     if (m_localServer) url = s_localURL;
-    // url += (m_appSuffix + "/" + m_db + "/Results/" + command);
+
     if (m_prodServer) {
       if (command.equals("openSesame")) {
         url += (m_appSuffix + "/" + m_db + openSesameUrl);
