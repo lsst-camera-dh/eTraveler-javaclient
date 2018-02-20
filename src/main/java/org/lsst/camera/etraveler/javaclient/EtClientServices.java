@@ -15,7 +15,7 @@ import org.lsst.camera.etraveler.javaclient.utils.RunUtils;
  * retrieve database entries
  * @author jrb
  */
-public class EtClientServices  {
+public class EtClientServices implements AutoCloseable  {
   private EtClient m_client=null;
   private String m_operator = "read_only";
   private String m_appSuffix="";
@@ -208,8 +208,9 @@ public class EtClientServices  {
                  String schemaName, String model, String experimentSN)
     throws UnsupportedEncodingException, IOException, EtClientException {
     HashSet<String> emptySet = new HashSet<String>();
+    ArrayList<String> noStrings = new ArrayList<String>();
     return getResultsJH(travelerName, hardwareType, stepName, schemaName,
-                        model, experimentSN, emptySet);
+                        model, experimentSN, emptySet, noStrings);
   }  
   /**
    * Return data for components, run, step, schema as specified
@@ -234,6 +235,36 @@ public class EtClientServices  {
                  Set<String> hardwareLabels) 
     throws UnsupportedEncodingException, IOException, EtClientException {
     HashMap<String, Object> args = new HashMap<String, Object> ();
+    ArrayList<String> emptySet = new ArrayList<String>();
+    return getResultsJH(travelerName, hardwareType, stepName, schemaName,
+                        model, experimentSN, hardwareLabels, emptySet);
+  }
+
+  /**
+   * Return data for components, run, step, schema as specified
+   * Filter on hardware labels and run status if arguments are non-empty
+   * @param travelerName   Must be non-null
+   * @param hardwareType   Must be non-null
+   * @param stepName       Must be non-null
+   * @param schemaName  If non-null, fetch data only for this schema
+   * @param model If non- null, fetch data only for hardware of this model
+   * @param experimentSN If non-null fetch data only for this component
+   * @param hardwareLabels Set of labels or group wildcard
+   *  (e.g. "grpName:labelName" or "grpName:") If non-null and non-empty
+   *  set return information only for components having > 0 of labels
+   * @param runStatus If non-empty filter on runs with final status in the list
+   * @return Map keyed by experimentSN.  Value for each entry is similar in
+   * structure to return from getRunResults
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
+  public HashMap<String, Object>
+    getResultsJH(String travelerName, String hardwareType, String stepName,
+                 String schemaName, String model, String experimentSN,
+                 Set<String> hardwareLabels, ArrayList<String> runStatus) 
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    HashMap<String, Object> args = new HashMap<String, Object> ();
     args.put("travelerName", travelerName);
     args.put("hardwareType", hardwareType);
     args.put("stepName", stepName);
@@ -249,12 +280,15 @@ public class EtClientServices  {
     if (hardwareLabels != null) {
       if (!hardwareLabels.isEmpty()) args.put("hardwareLabels", hardwareLabels);
     }
+    if (!runStatus.isEmpty()) args.put("runStatus", runStatus);
+    
     args.put("function", "getResultsJH");
     HashMap<String, Object> results =
       (HashMap<String, Object>) m_client.execute("getResults", args);
     return (HashMap<String, Object>) consumeAck(results).get("results");
   }
 
+  
     /** 
      * Fetch data as above. Then filter using @arg itemFilters.  
      * @param travelerName
@@ -277,8 +311,10 @@ public class EtClientServices  {
                  String schemaName, String model, String experimentSN,
                  ArrayList<ImmutablePair<String, Object>> itemFilters)
     throws UnsupportedEncodingException, IOException, EtClientException {
+    HashSet<String> emptySet = new HashSet<String>();
+    ArrayList<String> noStrings = new ArrayList<String>();
     return getResultsJH(travelerName, hardwareType, stepName, schemaName,
-                        model, experimentSN, itemFilters, null);
+                        model, experimentSN, itemFilters, emptySet, noStrings);
   }
   
   /** 
@@ -293,8 +329,8 @@ public class EtClientServices  {
    * schema, throw out any instance of that schema which don't have
    * specified value
    * @param hardwareLabels Set of labels or group wildcard
-   *   (e.g. "grpName:labelName" or "grpName:") If non-null return information only for
-   *   components have at least one of the labels
+   *   (e.g. "grpName:labelName" or "grpName:") If non-null return information
+   *   only for components having at least one of the labels
    * @return
    * @throws UnsupportedEncodingException
    * @throws IOException
@@ -306,13 +342,45 @@ public class EtClientServices  {
                  ArrayList<ImmutablePair<String, Object>> itemFilters,
                  Set<String> hardwareLabels)
     throws UnsupportedEncodingException, IOException, EtClientException {
+    ArrayList<String> noStrings = new ArrayList<String>();
+    return getResultsJH(travelerName, hardwareType, stepName, schemaName,
+                        model, experimentSN, hardwareLabels, noStrings);
+  }
+
+    /** 
+   * Fetch data as above. Then filter using @arg itemFilters.  
+   * @param travelerName
+   * @param hardwareType
+   * @param stepName
+   * @param schemaName
+   * @param model
+   * @param experimentSN
+   * @param itemFilters list of (key, value) pairs.  If key is key for a
+   * schema, throw out any instance of that schema which don't have
+   * specified value
+   * @param hardwareLabels Set of labels or group wildcard
+   *   (e.g. "grpName:labelName" or "grpName:") If non-null return information
+   *   only for components having at least one of the labels
+   * @param runStatus If non-empty list, filter on run status in the list
+   * @return
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
+  public HashMap<String, Object>
+    getResultsJH(String travelerName, String hardwareType, String stepName,
+                 String schemaName, String model, String experimentSN,
+                 ArrayList<ImmutablePair<String, Object>> itemFilters,
+                 Set<String> hardwareLabels, ArrayList<String> runStatus)
+    throws UnsupportedEncodingException, IOException, EtClientException {
     HashMap<String, Object> results =
       getResultsJH(travelerName, hardwareType, stepName, schemaName,
-                   model, experimentSN, hardwareLabels);
+                   model, experimentSN, hardwareLabels, runStatus);
     if (itemFilters == null) return results;
     for (Object k : results.keySet()) {
       HashMap<String, Object> oneRun = (HashMap<String, Object>) results.get(k);
-      HashMap<String, Object> steps = (HashMap<String, Object>) oneRun.get("steps");
+      HashMap<String, Object> steps =
+        (HashMap<String, Object>) oneRun.get("steps");
       RunUtils.pruneRun(steps, itemFilters);
     }
     return results;
@@ -335,7 +403,8 @@ public class EtClientServices  {
     getFilepathsJH(String travelerName, String hardwareType, String stepName,
                    String model, String experimentSN) 
     throws UnsupportedEncodingException, IOException, EtClientException {
-    return getFilepathsJH(travelerName, hardwareType, stepName, model, experimentSN, null);
+    return getFilepathsJH(travelerName, hardwareType, stepName, model,
+                          experimentSN, null, null);
   }
   
   /**
@@ -358,6 +427,32 @@ public class EtClientServices  {
     getFilepathsJH(String travelerName, String hardwareType, String stepName,
                    String model, String experimentSN, Set<String> hardwareLabels) 
     throws UnsupportedEncodingException, IOException, EtClientException {
+    return getFilepathsJH(travelerName, hardwareType, stepName, model,
+                          experimentSN, hardwareLabels, null);
+  }
+
+    /**
+   * Return filepath data for components, run, step as specified
+   * @param travelerName Must be non-null
+   * @param hardwareType Must be non-null
+   * @param stepName     Must be non-null
+   * @param model      If non-null return data only for components of this model
+   * @param experimentSN If non-null return data only for this component
+   * @param hardwareLabels Set of labels or group wildcard
+   *   (e.g. "grpName:labelName" or "grpName:") If non-null return information only for
+   *   components have at least one of the labels
+   * @param runStatus If non-empty list, filter on OR of statuses in the list
+   * @return Map keyed by experimentSN.  Value for each entry is similar in
+   * structure to return from getRunFilepaths
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
+  public HashMap<String, Object>
+    getFilepathsJH(String travelerName, String hardwareType, String stepName,
+                   String model, String experimentSN, Set<String> hardwareLabels,
+                   ArrayList<String> runStatus) 
+    throws UnsupportedEncodingException, IOException, EtClientException {
     HashMap<String, Object> args = new HashMap<String, Object> ();
     args.put("travelerName", travelerName);
     args.put("hardwareType", hardwareType);
@@ -369,9 +464,15 @@ public class EtClientServices  {
       args.put("experimentSN", experimentSN);
     }
     if (hardwareLabels != null) {
-      args.put("hardwareLabels", hardwareLabels);
+      if (!hardwareLabels.isEmpty() ) {
+          args.put("hardwareLabels", hardwareLabels);
+        }
     }
-
+    if (runStatus != null) {
+      if (!runStatus.isEmpty()) {
+        args.put("runStatus", runStatus);
+      }
+    }
     args.put("function", "getFilepathsJH");
     HashMap<String, Object> results =
       (HashMap<String, Object>) m_client.execute("getResults", args);
@@ -516,8 +617,8 @@ public class EtClientServices  {
       consumeAck(results).get("results");
   }
   /**
-   * Return information about runs executed on a particular component.  Optionally
-   * filter by traveler name
+   * Return information about runs executed on a particular component. 
+   * Optionally filter by traveler name
    * @param hardwareType (String)  required non-null
    * @param experimentSN (String) required non-null
    * @param travelerName (String) if null, return info for all travelers
@@ -527,14 +628,40 @@ public class EtClientServices  {
    * @throws IOException
    * @throws EtClientException 
    */
-  public Map<Integer, Object> getComponentRuns(String hardwareType, String experimentSN,
-                                               String travelerName)  
+  public Map<Integer, Object>
+    getComponentRuns(String hardwareType, String experimentSN,
+                     String travelerName)  
+    throws UnsupportedEncodingException, IOException, EtClientException {
+    return getComponentRuns(hardwareType, experimentSN, travelerName, null);
+  }
+
+  /**
+   * Return information about runs executed on a particular component.
+   * Optionally filter by traveler name
+   * @param hardwareType (String)  required non-null
+   * @param experimentSN (String) required non-null
+   * @param travelerName (String) if null, return info for all travelers
+   * @param runStatus If non-empty list, filter on OR of statuses in the list
+   * @return Map indexed by rootActivityId.  Value for each key is another map
+   *          containing information pertaining to that run  
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
+  public Map<Integer, Object>
+    getComponentRuns(String hardwareType, String experimentSN,
+                     String travelerName, ArrayList<String> runStatus)  
     throws UnsupportedEncodingException, IOException, EtClientException {
     HashMap<String, Object> args = new HashMap<String, Object> ();
     args.put("hardwareType", hardwareType);
     args.put("experimentSN", experimentSN);
     if (travelerName != null) {
       args.put("travelerName", travelerName);
+    }
+    if (runStatus != null) {
+      if (!runStatus.isEmpty() ) {
+        args.put("runStatus", runStatus);
+      }
     }
     args.put("function", "getComponentRuns");    
     Map<String, Object> results =
@@ -549,6 +676,7 @@ public class EtClientServices  {
     }
     return intKeyMap;
   }
+
   /** 
    * Return information about NCRs belonging to specified component 
    * and optionally its ancestors or descendants.  May also ask
@@ -768,6 +896,31 @@ public class EtClientServices  {
                          String hardwareType, String model,
                          String experimentSN, Set<String> hardwareLabels)
     throws UnsupportedEncodingException, IOException, EtClientException {
+    return getManualResultsStep(travelerName, stepName, hardwareType, model,
+                                experimentSN, hardwareLabels, null);
+  }
+
+    /**
+   * Return information about manual inputs for specified traveler type,
+   * step within the traveler and hardware type.   May further
+   * qualify by model or experimentSN or list of hardware labels.  
+   * @param  travelerName
+   * @param  stepName
+   * @param  hardwareType
+   * @param  model (may be null)
+   * @param  experimentSN (may be null)
+   * @param  hardwareLabels (set of strings used to filter; may be null)
+   * @param  runStatus If non-empty list, filter on OR of statuses in the list
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
+  public HashMap<String, Object>
+    getManualResultsStep(String travelerName, String stepName,
+                         String hardwareType, String model,
+                         String experimentSN, Set<String> hardwareLabels,
+                         ArrayList<String> runStatus)
+    throws UnsupportedEncodingException, IOException, EtClientException {
     HashMap<String, Object> args = new HashMap<String, Object> ();
     args.put("function", "getManualResultsStep");
     args.put("travelerName", travelerName);
@@ -782,12 +935,16 @@ public class EtClientServices  {
     if (hardwareLabels != null) {
       args.put("hardwareLabels", hardwareLabels);
     }
+    if (runStatus != null) {
+      if (!runStatus.isEmpty() ) {
+        args.put("runStatus", runStatus);
+      }
+    }
     HashMap<String, Object> results =
       (HashMap<String, Object>) m_client.execute("getResults", args);
     return (HashMap<String, Object> ) consumeAck(results).get("results");
   }
 
-  /* xxx */
   /**
    * Return information about manual filepath inputs for specified 
    * traveler type, step within the traveler and hardware type.  
@@ -807,6 +964,31 @@ public class EtClientServices  {
                            String hardwareType, String model,
                            String experimentSN, Set<String> hardwareLabels)
     throws UnsupportedEncodingException, IOException, EtClientException {
+    return getManualFilepathsStep(travelerName, stepName, hardwareType, model,
+                                  experimentSN, hardwareLabels, null);
+  }
+
+  /**
+   * Return information about manual filepath inputs for specified 
+   * traveler type, step within the traveler and hardware type.  
+   * May further qualify by model or experimentSN or list of hardware labels.  
+   * @param  travelerName
+   * @param  stepName
+   * @param  hardwareType
+   * @param  model (may be null)
+   * @param  experimentSN (may be null)
+   * @param  hardwareLabels (set of strings used to filter; may be null)
+   * @param  runStatus  If non-empty list, filter on OR of statuses in the list
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
+  public HashMap<String, Object>
+    getManualFilepathsStep(String travelerName, String stepName,
+                           String hardwareType, String model,
+                           String experimentSN, Set<String> hardwareLabels,
+                           ArrayList<String> runStatus)
+    throws UnsupportedEncodingException, IOException, EtClientException {
     HashMap<String, Object> args = new HashMap<String, Object> ();
     args.put("function", "getManualFilepathsStep");
     args.put("travelerName", travelerName);
@@ -821,10 +1003,17 @@ public class EtClientServices  {
     if (hardwareLabels != null) {
       args.put("hardwareLabels", hardwareLabels);
     }
+    if (runStatus != null) {
+      if (!runStatus.isEmpty() ) {
+        args.put("runStatus", runStatus);
+      }
+    }
+    
     HashMap<String, Object> results =
       (HashMap<String, Object>) m_client.execute("getResults", args);
     return (HashMap<String, Object> ) consumeAck(results).get("results");
   }
+
   /**
    * Return information about signature inputs for specified traveler type,
    * step within the traveler and hardware type.  May further qualify
@@ -847,6 +1036,35 @@ public class EtClientServices  {
                             String experimentSN, Set<String> hardwareLabels,
                             ArrayList<String> activityStatus)
     throws UnsupportedEncodingException, IOException, EtClientException {
+    return getManualSignaturesStep(travelerName, stepName, hardwareType,model,
+                                   experimentSN, hardwareLabels,
+                                   activityStatus, null);
+  }
+
+  /**
+   * Return information about signature inputs for specified traveler type,
+   * step within the traveler and hardware type.  May further qualify
+   * by model, experimentSN, or set of hardware labels  
+   * @param  travelerName
+   * @param  stepName
+   * @param  hardwareType
+   * @param  model (may be null)
+   * @param  experimentSN (may be null)
+   * @param  hardwareLabels (set of strings used to filter; may be null)
+   * @param activityStatus Array list of allowable activity status. If
+   *        null treated as list with single entry "success".
+   * @param  runStatus If non-empty list, filter on OR of statuses in the list
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   * @throws EtClientException 
+   */
+  public HashMap<String, Object>
+    getManualSignaturesStep(String travelerName, String stepName,
+                            String hardwareType, String model,
+                            String experimentSN, Set<String> hardwareLabels,
+                            ArrayList<String> activityStatus,
+                            ArrayList<String> runStatus)
+    throws UnsupportedEncodingException, IOException, EtClientException {
     HashMap<String, Object> args = new HashMap<String, Object> ();
     args.put("function", "getManualSignaturesStep");
     args.put("travelerName", travelerName);
@@ -864,11 +1082,16 @@ public class EtClientServices  {
     if (activityStatus != null) {
       args.put("activityStatus", activityStatus);
     }
+    if (runStatus != null) {
+      if (!runStatus.isEmpty() ) {
+        args.put("runStatus", runStatus);
+      }
+    }
     HashMap<String, Object> results =
       (HashMap<String, Object>) m_client.execute("getResults", args);
     return (HashMap<String, Object> ) consumeAck(results).get("results");
   }
-
+  
   /*  */
   public HashMap<Integer, Object>
     getMissingSignatures(ArrayList<String> activityStatus)
@@ -897,13 +1120,21 @@ public class EtClientServices  {
       results.remove("acknowledge");
       return results;
     } else {
-      throw new EtClientException("Operation failed with error: " +
-                                  results.get("acknowledge").toString());
+      String ack =  results.get("acknowledge").toString();
+      if (ack.indexOf("NoDataException") > -1) {
+        throw new EtClientNoDataException("Operation failed with error: " +
+                                          ack);
+      }
+      throw new EtClientException("Operation failed with error: " + ack);
     }
   }
 
   public void close() throws IOException {
+    //try {
     m_client.close();
     m_client = null;
+    //} catch (IOException ex) {
+    //throw new Exception(ex);
+    //}
   }
 }

@@ -28,6 +28,7 @@ import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
 
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
@@ -45,20 +46,20 @@ public class EtClient {
   private boolean m_prodServer=true;
   private boolean m_localServer=false;
   private String m_appSuffix="";
+  private boolean m_getDone=false;
   private CloseableHttpClient m_httpclient = null;
   
-  private static final String s_prodURL = "http://lsst-camera.slac.stanford.edu/eTraveler";
-  private static final String s_devURL = "http://lsst-camera-dev.slac.stanford.edu/eTraveler";
+  private static final String s_prodURL = "https://lsst-camera.slac.stanford.edu/eTraveler";
+  private static final String s_devURL = "https://lsst-camera-dev.slac.stanford.edu/eTraveler";
+  ///private static final String s_devURL = "http://lsst-camera-dev.slac.stanford.edu/eTraveler-jrb/exp/LSST-CAMERA";
 
-  private static final String s_localURL = "http://localhost:8084/eTraveler";
+  private static final String s_localURL = "https://localhost:8084/eTraveler";
 
   private class MyResponseHandler implements ResponseHandler< Map<String, Object > > {
     public Map<String, Object> handleResponse(final HttpResponse response) throws
       ClientProtocolException, IOException {
-      //System.out.println("Inside handleResponse\n");
       int status = response.getStatusLine().getStatusCode();
-      //System.out.println("Returned response was ");
-      //System.out.println(status);
+
       if (status >= 200 && status < 305) {
         HttpEntity entity = response.getEntity();
         if (entity == null) return null;
@@ -116,13 +117,29 @@ public class EtClient {
   private void createClient() {
     m_httpclient =
       HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
+    
   }
   
   private String formURL(String command)  {
     String url = s_prodURL;
+    String openSesameUrl = "/error.html.jsp?message=Priming+pump+for+POST";
     if (!m_prodServer) url = s_devURL;
     if (m_localServer) url = s_localURL;
-    url += (m_appSuffix + "/" + m_db + "/Results/" + command);
+
+    if (m_prodServer) {
+      if (command.equals("openSesame")) {
+        url += (m_appSuffix + "/" + m_db + openSesameUrl);
+      } else {
+        url += (m_appSuffix + "/" + m_db + "/Results/" + command);
+      }
+    } else {
+      if (command.equals("openSesame")) {
+        url += (m_appSuffix+"/exp/" + m_exp + "/" + m_db + openSesameUrl);
+      } else {
+        url += (m_appSuffix+"/exp/" + m_exp + "/" + m_db + "/Results/"
+                + command);
+      }
+    }
     return url;
   }
   
@@ -141,17 +158,30 @@ public class EtClient {
                                      HashMap<String, Object> args)
   throws JsonProcessingException, UnsupportedEncodingException,
          EtClientException, IOException {
-    if (m_httpclient == null) createClient();
+    if (m_httpclient == null) {
+      createClient();
+    }
+    if (!m_getDone) {
+      if (!m_prodServer) {
+        // First send an innocuous GET
+        String openSesameUrl = formURL("openSesame");
+        System.out.println("Using open sesame URL " + openSesameUrl);
+        HttpGet httpget = new HttpGet(openSesameUrl);
+        m_httpclient.execute(httpget);
+      }
+      m_getDone = true;
+    }
 
-    System.out.println("Using URL " + formURL(command));
-    HttpPost httppost = new HttpPost(formURL(command));
+    String commandUrl = formURL(command);
+    MyResponseHandler hand = new MyResponseHandler();
+    System.out.println("Using command URL " + commandUrl);
+    HttpPost httppost = new HttpPost(commandUrl);
     String payload = new ObjectMapper().writeValueAsString(args);
     List<NameValuePair> params = new ArrayList<NameValuePair>(1);
     params.add(new BasicNameValuePair("jsonObject", payload));
 
     httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 
-    MyResponseHandler hand = new MyResponseHandler();
     return m_httpclient.execute(httppost, hand);
   }
 
