@@ -124,7 +124,7 @@ public class EtClient {
   
   private String formURL(String command)  {
     String url = s_prodURL;
-    String openSesameUrl = "/error.html.jsp";
+    String openSesameUrl = "/error.html.jsp?message=Priming+pump+for+POST";
     if (!m_prodServer) url = s_devURL;
     if (m_localServer) url = s_localURL;
     // url += (m_appSuffix + "/" + m_db + "/Results/" + command);
