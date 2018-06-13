@@ -289,7 +289,7 @@ public class EtClientServices implements AutoCloseable  {
   }
 
   
-    /** 
+    /**
      * Fetch data as above. Then filter using @arg itemFilters.  
      * @param travelerName
      * @param hardwareType
@@ -317,7 +317,7 @@ public class EtClientServices implements AutoCloseable  {
                         model, experimentSN, itemFilters, emptySet, noStrings);
   }
   
-  /** 
+  /**
    * Fetch data as above. Then filter using @arg itemFilters.  
    * @param travelerName
    * @param hardwareType
@@ -347,7 +347,7 @@ public class EtClientServices implements AutoCloseable  {
                         model, experimentSN, hardwareLabels, noStrings);
   }
 
-    /** 
+    /**
    * Fetch data as above. Then filter using @arg itemFilters.  
    * @param travelerName
    * @param hardwareType
