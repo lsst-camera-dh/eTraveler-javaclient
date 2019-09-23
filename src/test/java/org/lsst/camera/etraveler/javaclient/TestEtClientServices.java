@@ -738,49 +738,49 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     }
   }
 
-  @Test
-  public void testManualStep() throws UnsupportedEncodingException,
-                                     EtClientException, IOException {
-    boolean prodServer = false;
-    boolean localServer = false;
-    String appSuffix="-jrb";
-    String traveler="SR-GEN-RCV-02";  // InputTraveler";
-    String stepName="SR-RCV-02_Shipping_Documenation"; //hasInputs";
-    String htype="ITL-CCD";  //"boojum";
+  // @Test
+  // public void testManualStep() throws UnsupportedEncodingException,
+  //                                    EtClientException, IOException {
+  //   boolean prodServer = false;
+  //   boolean localServer = false;
+  //   String appSuffix="-jrb";
+  //   String traveler="SR-GEN-RCV-02";  // InputTraveler";
+  //   String stepName="SR-RCV-02_Shipping_Documenation"; //hasInputs";
+  //   String htype="ITL-CCD";  //"boojum";
 
-    String db="Prod";//"Raw";
-    System.out.println("\n Exercise getManualResultsStep for db=" + db +
-                       ", traveler=" + traveler + ", step=" + stepName
-                       + " and hardware type=" + htype);
-    ArrayList<String> runStatus = new ArrayList<>();
-    runStatus.add("inProgress");
-    runStatus.add("paused");
-    EtClientServices myService =
-      new EtClientServices(db, null, prodServer, localServer, appSuffix);
+  //   String db="Prod";//"Raw";
+  //   System.out.println("\n Exercise getManualResultsStep for db=" + db +
+  //                      ", traveler=" + traveler + ", step=" + stepName
+  //                      + " and hardware type=" + htype);
+  //   ArrayList<String> runStatus = new ArrayList<>();
+  //   runStatus.add("inProgress");
+  //   runStatus.add("paused");
+  //   EtClientServices myService =
+  //     new EtClientServices(db, null, prodServer, localServer, appSuffix);
 
-    try {
-      HashMap<String, Object> results =
-        myService.getManualResultsStep(traveler, stepName, htype, null, null, 
-          null, runStatus);
-      for (String expSN : results.keySet()) {
-        HashMap<String, Object> expData = (HashMap<String, Object>)
-          results.get(expSN);
-        System.out.println("\n\nFor component " + expSN);
-        for (String key : expData.keySet()) {
-          if (!key.equals("steps")) {   // general run info
-            System.out.println(key + ":" + expData.get(key));
-          }
-        }
-        // Temporarily comment out details in output
-        //printManualSteps((HashMap<String, Object>) expData.get("steps"), false);
-      }
-    } catch (Exception ex) {
-      System.out.println("Post failed with message " + ex.getMessage());
-      throw new EtClientException(ex.getMessage());
-    } finally {
-      myService.close();
-    }
-  }
+  //   try {
+  //     HashMap<String, Object> results =
+  //       myService.getManualResultsStep(traveler, stepName, htype, null, null, 
+  //         null, runStatus);
+  //     for (String expSN : results.keySet()) {
+  //       HashMap<String, Object> expData = (HashMap<String, Object>)
+  //         results.get(expSN);
+  //       System.out.println("\n\nFor component " + expSN);
+  //       for (String key : expData.keySet()) {
+  //         if (!key.equals("steps")) {   // general run info
+  //           System.out.println(key + ":" + expData.get(key));
+  //         }
+  //       }
+  //       // Temporarily comment out details in output
+  //       //printManualSteps((HashMap<String, Object>) expData.get("steps"), false);
+  //     }
+  //   } catch (Exception ex) {
+  //     System.out.println("Post failed with message " + ex.getMessage());
+  //     throw new EtClientException(ex.getMessage());
+  //   } finally {
+  //     myService.close();
+  //   }
+  // }
 
   /* xx */
   @Test
