@@ -139,7 +139,8 @@ public class TestEtClientServices {
     System.out.println("prodServer is " + prodServer);
     boolean localServer=false;
     System.out.println("localServer is " + localServer);
-    String appSuffix="-jrb";
+    //  String appSuffix="-jrb";
+    String appSuffix="";
     System.out.println("appSuffix is " + appSuffix);
 
     EtClientServices myService = new EtClientServices("Dev", null, prodServer, 
@@ -170,7 +171,8 @@ public class TestEtClientServices {
     System.out.println("prodServer is " + prodServer);
     boolean localServer=false;
     System.out.println("localServer is " + localServer);
-    String appSuffix="-jrb";
+    // String appSuffix="-jrb";
+    String appSuffix="";
     System.out.println("appSuffix is " + appSuffix);
     EtClientServices myService =
       new EtClientServices("Dev", null, prodServer, localServer, appSuffix);
@@ -201,7 +203,8 @@ public class TestEtClientServices {
     System.out.println("prodServer is " + prodServer);
     boolean localServer=false;
     System.out.println("localServer is " + localServer);
-    String appSuffix="-jrb";
+    // String appSuffix="-jrb";
+    String appSuffix="";
     System.out.println("appSuffix is " + appSuffix);
     EtClientServices myService =
       new EtClientServices("Prod", null, prodServer, localServer, appSuffix);
@@ -243,7 +246,8 @@ public class TestEtClientServices {
     System.out.println("prodServer is " + prodServer);
     boolean localServer=false;
     System.out.println("localServer is " + localServer);
-    String appSuffix="-jrb";
+    //String appSuffix="-jrb";
+    String appSuffix="";
     System.out.println("appSuffix is " + appSuffix);
     EtClientServices myService =
       new EtClientServices("Prod", null, prodServer, localServer, appSuffix);
@@ -293,7 +297,8 @@ public class TestEtClientServices {
     System.out.println("prodServer is " + prodServer);
     boolean localServer=false;
     System.out.println("localServer is " + localServer);
-    String appSuffix="-jrb";
+    //String appSuffix="-jrb";
+    String appSuffix="";
     System.out.println("appSuffix is " + appSuffix);
     EtClientServices myService =
       new EtClientServices("Prod", null, prodServer, localServer, appSuffix);
@@ -338,7 +343,8 @@ public class TestEtClientServices {
     System.out.println("prodServer is " + prodServer);
     boolean localServer=false;
     System.out.println("localServer is " + localServer);
-    String appSuffix="-jrb";
+    //  String appSuffix="-jrb";
+    String appSuffix="";
     System.out.println("appSuffix is " + appSuffix);
     EtClientServices myService =
       new EtClientServices("Prod", null, prodServer, localServer, appSuffix);
@@ -368,7 +374,8 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     System.out.println("prodServer is " + prodServer);
     boolean localServer=false;
     System.out.println("localServer is " + localServer);
-    String appSuffix="-jrb";
+    // String appSuffix="-jrb";
+    String appSuffix="";
 
     EtClientServices myService =
       new EtClientServices("Prod", null, prodServer, localServer, appSuffix);
@@ -463,7 +470,8 @@ throws UnsupportedEncodingException, EtClientException, IOException {
                                       EtClientException, IOException {
     boolean prodServer = false;
     boolean localServer = false;
-    String appSuffix="-jrb";
+    // String appSuffix="-jrb";
+    String appSuffix="";
     int activityId = 23000;
     String db="Prod";
     System.out.println("\n Exercise getActivity for db=" + db +
@@ -490,7 +498,8 @@ throws UnsupportedEncodingException, EtClientException, IOException {
                                             EtClientException, IOException {
     boolean prodServer = false;
     boolean localServer = false;
-    String appSuffix="-jrb";
+    // String appSuffix="-jrb";
+    String appSuffix="";
     //String run="";
     int run = 4248;
     String db="Dev";
@@ -521,7 +530,8 @@ throws UnsupportedEncodingException, EtClientException, IOException {
                                       EtClientException, IOException {
     boolean prodServer = false;
     boolean localServer = false;
-    String appSuffix="-jrb";
+    //String appSuffix="-jrb";
+    String appSuffix="";
     String run = "4248D";
     String db="Dev";
     System.out.println("\n Exercise getRunSummary for db=" + db +
@@ -582,7 +592,8 @@ throws UnsupportedEncodingException, EtClientException, IOException {
                                          EtClientException, IOException {
     boolean prodServer = false;
     boolean localServer = false;
-    String appSuffix="-jrb";
+    // String appSuffix="-jrb";
+    String appSuffix="";
     String htype = "ITL-CCD";
     String expSN = "ITL-3800C-021";
     String travelerName="SR-EOT-1";
@@ -646,7 +657,8 @@ throws UnsupportedEncodingException, EtClientException, IOException {
                                      EtClientException, IOException {
     boolean prodServer = false;
     boolean localServer = false;
-    String appSuffix="-jrb";
+    //String appSuffix="-jrb";
+    String appSuffix="";
     //String run = "4276D";
     int run = 4276;
     String db="Dev";
@@ -677,7 +689,8 @@ throws UnsupportedEncodingException, EtClientException, IOException {
                                               EtClientException, IOException {
     boolean prodServer = false;
     boolean localServer = false;
-    String appSuffix="-jrb";
+    // String appSuffix="-jrb";
+    String appSuffix="";
     //String run = "4276D";
     int run = 4864;
     String db="Prod";
@@ -708,7 +721,8 @@ throws UnsupportedEncodingException, EtClientException, IOException {
                                                EtClientException, IOException {
     boolean prodServer = false;
     boolean localServer = false;
-    String appSuffix="-jrb";
+    // String appSuffix="-jrb";
+    String appSuffix="";
     //String run = "4276D";
     //int run = 4955;
     int run = 5108;
@@ -743,7 +757,8 @@ throws UnsupportedEncodingException, EtClientException, IOException {
                                      EtClientException, IOException {
     boolean prodServer = false;
     boolean localServer = false;
-    String appSuffix="-jrb";
+    // String appSuffix="-jrb";
+    String appSuffix="";
     String traveler="SR-GEN-RCV-02";  // InputTraveler";
     String stepName="SR-RCV-02_Shipping_Documenation"; //hasInputs";
     String htype="ITL-CCD";  //"boojum";
@@ -755,6 +770,7 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     ArrayList<String> runStatus = new ArrayList<>();
     runStatus.add("inProgress");
     runStatus.add("paused");
+    runStatus.add("success");
     EtClientServices myService =
       new EtClientServices(db, null, prodServer, localServer, appSuffix);
 
@@ -788,7 +804,8 @@ throws UnsupportedEncodingException, EtClientException, IOException {
                                                EtClientException, IOException {
     boolean prodServer = false;
     boolean localServer = false;
-    String appSuffix="-jrb";
+    // String appSuffix="-jrb";
+    String appSuffix="";
     String traveler="SR-RSA-ASY-02";
     String stepName="SR-RSA-ASY-02_Analyze-Data-Run1";
     String htype="LCA-10753_RSA";
@@ -831,7 +848,8 @@ throws UnsupportedEncodingException, EtClientException, IOException {
                                                 EtClientException, IOException {
     boolean prodServer = false;
     boolean localServer = false;
-    String appSuffix="-jrb";
+    //  String appSuffix="-jrb";
+    String appSuffix="";
     String traveler="NCR";
     String stepName="NCR_C_Final_disposition";
     String htype="e2v-CCD";
@@ -874,7 +892,8 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     throws UnsupportedEncodingException, EtClientException, IOException {
     boolean prodServer = false;
     boolean localServer = false;
-    String appSuffix="-jrb";
+    //  String appSuffix="-jrb";
+    String appSuffix="";
 
     String db="Dev";
     System.out.println("\n Exercise getMissingSignatures for db=" + db +
@@ -919,7 +938,8 @@ throws UnsupportedEncodingException, EtClientException, IOException {
     throws UnsupportedEncodingException, EtClientException, IOException {
     boolean prodServer = false;
     boolean localServer = false;
-    String appSuffix="-jrb";
+    // String appSuffix="-jrb";
+    String appSuffix="";
     
     String htype = "e2v-CCD";
     String expSN = "E2V-CCD250-239";

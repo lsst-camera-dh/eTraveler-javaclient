@@ -5,7 +5,7 @@
         <groupId>org.lsst.camera</groupId>
        
         <artifactId>org-lsst-camera-maven-project-jar</artifactId>
-        <version>1.0.3</version> 
+        <version>1.0.6-SNAPSHOT</version> 
         <relativePath />
     </parent>
 
@@ -13,7 +13,7 @@
   <modelVersion>4.0.0</modelVersion>
     <groupId>org.lsst.camera</groupId>
     <artifactId>org-lsst-camera-etraveler-javaclient</artifactId>
-    <version>1.5.6-SNAPSHOT</version>
+    <version>1.5.6-SNAPSHOT-toHTTPS</version>
     <packaging>jar</packaging>
     <name>LSST eTraveler Java Client</name>
     <properties>
@@ -42,7 +42,7 @@
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
-        <version>2.7.0</version>
+        <version>2.9.9</version>
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
@@ -117,7 +117,7 @@
         <repository>
                 <id>lsst-dh-maven2-public</id>
                 <name>LSST Data Handling Maven Central repository</name>
-<url>http://srs.slac.stanford.edu/nexus/content/groups/lsst-dh-maven2-public/</url>
+<url>https://srs.slac.stanford.edu/nexus/content/groups/lsst-dh-maven2-public/</url>
         </repository> 
     
     </repositories>
