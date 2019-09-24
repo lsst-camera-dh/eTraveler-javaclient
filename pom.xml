@@ -13,7 +13,7 @@
   <modelVersion>4.0.0</modelVersion>
     <groupId>org.lsst.camera</groupId>
     <artifactId>org-lsst-camera-etraveler-javaclient</artifactId>
-    <version>1.5.6-SNAPSHOT-toHTTPS</version>
+    <version>1.5.6</version>
     <packaging>jar</packaging>
     <name>LSST eTraveler Java Client</name>
     <properties>
@@ -42,7 +42,7 @@
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
-        <version>2.9.9</version>
+        <version>2.9.10</version>
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
